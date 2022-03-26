@@ -4,7 +4,6 @@ go 1.17
 
 require (
 	github.com/google/uuid v1.2.0
-	github.com/p000ic/go-fosite-mongo v0.28.0
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/ory/fosite v0.42.1
 	github.com/pkg/errors v0.9.1

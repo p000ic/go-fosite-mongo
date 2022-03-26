@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// NewExampleMongoStore -
 // init configures and starts an example mongo datastore, then
 // returns a teardown function to clean up after itself.
 func NewExampleMongoStore() *mongo.Store {

@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/ory/fosite-example/authorizationserver"
-	"github.com/ory/fosite-example/oauth2client"
-	"github.com/ory/fosite-example/resourceserver"
+	"github.com/p000ic/go-fosite-mongo/authorizationserver"
+	"github.com/p000ic/go-fosite-mongo/oauth2client"
+	"github.com/p000ic/go-fosite-mongo/resourceserver"
 	log "github.com/sirupsen/logrus"
 	goauth "golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -44,9 +44,6 @@ func main() {
 		port = os.Getenv("PORT")
 	}
 	srv := &http.Server{Addr: ":" + port}
-
-	// ### oauth2 storage ###
-	defer authorizationserver.TeardownMongo()
 
 	// ### oauth2 server ###
 	authorizationserver.RegisterHandlers() // the authorization server (fosite)
