@@ -11,24 +11,24 @@ type Client struct {
 	ID string `bson:"id" json:"id" xml:"id"`
 
 	// createTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"createTime" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"create_at" json:"createTime" xml:"createTime"`
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"updateTime" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"update_at" json:"updateTime" xml:"updateTime"`
 
 	// AllowedAudiences contains a list of Audiences that the client has been
 	// given rights to access.
-	AllowedAudiences []string `bson:"allowedAudiences" json:"allowedAudiences,omitempty" xml:"allowedAudiences,omitempty"`
+	AllowedAudiences []string `bson:"allowed_audiences" json:"allowedAudiences,omitempty" xml:"allowedAudiences,omitempty"`
 
 	// AllowedRegions contains a list of regions that the client has been
 	// given permission to access. This enables filtering for clients based on
 	// geographic region.
-	AllowedRegions []string `bson:"allowedRegions" json:"allowedRegions,omitempty" xml:"allowedRegions,omitempty"`
+	AllowedRegions []string `bson:"allowed_regions" json:"allowedRegions,omitempty" xml:"allowedRegions,omitempty"`
 
 	// AllowedTenantAccess contains a list of Tenants that the client has been
 	// given rights to access.
-	AllowedTenantAccess []string `bson:"allowedTenantAccess" json:"allowedTenantAccess,omitempty" xml:"allowedTenantAccess,omitempty"`
+	AllowedTenantAccess []string `bson:"allowed_tenant_access" json:"allowedTenantAccess,omitempty" xml:"allowedTenantAccess,omitempty"`
 
 	// GrantTypes contains a list of grant types the client is allowed to use.
 	//
@@ -70,7 +70,7 @@ type Client struct {
 
 	// RedirectURIs contains a list of allowed redirect urls for the client, for
 	// example: http://mydomain/oauth/callback.
-	RedirectURIs []string `bson:"redirectUris" json:"redirectUris" xml:"redirectUris"`
+	RedirectURIs []string `bson:"redirect_uris" json:"redirectUris" xml:"redirectUris"`
 
 	// Owner identifies the owner of the OAuth 2.0 Client.
 	Owner string `bson:"owner" json:"owner" xml:"owner"`
@@ -79,24 +79,24 @@ type Client struct {
 	// points to a human-readable privacy policy document that describes how the
 	// deployment organization collects, uses, retains, and discloses personal
 	// data.
-	PolicyURI string `bson:"policyUri" json:"policyUri" xml:"policyUri"`
+	PolicyURI string `bson:"policy_uri" json:"policyUri" xml:"policyUri"`
 
 	// TermsOfServiceURI allows the application developer to provide a URI
 	// string that points to a human-readable terms of service document that
 	// describes and outlines the contractual relationship between the end-user
 	// and the client application that the end-user accepts when authorizing
 	// their use of the client.
-	TermsOfServiceURI string `bson:"termsOfServiceUri" json:"termsOfServiceUri" xml:"termsOfServiceUri"`
+	TermsOfServiceURI string `bson:"terms_of_service_uri" json:"termsOfServiceUri" xml:"termsOfServiceUri"`
 
 	// ClientURI allows the application developer to provide a URI string that
 	// points to a human-readable web page that provides information about the
 	// client application.
 	// If present, the server SHOULD display this URL to the end-user in a
 	// click-able fashion.
-	ClientURI string `bson:"clientUri" json:"clientUri" xml:"clientUri"`
+	ClientURI string `bson:"client_uri" json:"clientUri" xml:"clientUri"`
 
 	// LogoURI is an URL string that references a logo for the client.
-	LogoURI string `bson:"logoUri" json:"logoUri" xml:"logoUri"`
+	LogoURI string `bson:"logo_uri" json:"logoUri" xml:"logoUri"`
 
 	// Contacts contains a list ways to contact the developers responsible for
 	// this OAuth 2.0 client, typically email addresses.

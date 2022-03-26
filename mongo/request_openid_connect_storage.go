@@ -6,8 +6,6 @@ import (
 
 	// External Imports
 	"github.com/ory/fosite"
-	"github.com/sirupsen/logrus"
-
 	// Internal Imports
 	"github.com/p000ic/go-fosite-mongo"
 )
@@ -15,30 +13,13 @@ import (
 // CreateOpenIDConnectSession creates an open id connect session resource for a
 // given authorize code. This is relevant for explicit open id connect flow.
 func (r *RequestManager) CreateOpenIDConnectSession(ctx context.Context, authorizeCode string, request fosite.Requester) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityOpenIDSessions,
-		"method":     "CreateOpenIDConnectSession",
-	})
-
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "CreateOpenIDConnectSession",
-	})
-	defer span.Finish()
-
 	// Store session request
 	_, err = r.Create(ctx, storage.EntityOpenIDSessions, toMongo(authorizeCode, request))
 	if err != nil {
 		if err == storage.ErrResourceExists {
-			log.WithError(err).Debug(logConflict)
 			return err
 		}
 
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return err
 	}
 
@@ -48,41 +29,23 @@ func (r *RequestManager) CreateOpenIDConnectSession(ctx context.Context, authori
 // GetOpenIDConnectSession gets a session resource based off the Authorize Code
 // and returns a fosite.Requester, or an error.
 func (r *RequestManager) GetOpenIDConnectSession(ctx context.Context, authorizeCode string, requester fosite.Requester) (request fosite.Requester, err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityOpenIDSessions,
-		"method":     "GetOpenIDConnectSession",
-	})
-
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
 		var closeSession func()
 		ctx, closeSession, err = newSession(ctx, r.DB)
 		if err != nil {
-			log.WithError(err).Debug("error starting session")
 			return nil, err
 		}
 		defer closeSession()
 	}
 
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "GetOpenIDConnectSession",
-	})
-	defer span.Finish()
-
 	// Get the stored request
 	req, err := r.GetBySignature(ctx, storage.EntityOpenIDSessions, authorizeCode)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return nil, err
 		}
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return nil, err
 	}
 
@@ -95,11 +58,8 @@ func (r *RequestManager) GetOpenIDConnectSession(ctx context.Context, authorizeC
 	request, err = req.ToRequest(ctx, session, r.Clients)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return nil, err
 		}
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return nil, err
 	}
 
@@ -108,32 +68,13 @@ func (r *RequestManager) GetOpenIDConnectSession(ctx context.Context, authorizeC
 
 // DeleteOpenIDConnectSession removes an open id connect session from mongo.
 func (r *RequestManager) DeleteOpenIDConnectSession(ctx context.Context, authorizeCode string) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityOpenIDSessions,
-		"method":     "DeleteOpenIDConnectSession",
-	})
-
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "DeleteOpenIDConnectSession",
-	})
-	defer span.Finish()
-
 	// Remove session request
 	err = r.DeleteBySignature(ctx, storage.EntityOpenIDSessions, authorizeCode)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return err
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return err
 	}
-
 	return nil
 }

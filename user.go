@@ -21,24 +21,24 @@ type User struct {
 	ID string `bson:"id" json:"id" xml:"id"`
 
 	// createTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"createTime" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"create_time" json:"createTime" xml:"createTime"`
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"updateTime" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"update_time" json:"updateTime" xml:"updateTime"`
 
 	// AllowedTenantAccess contains the Tenant IDs that the user has been given
 	// rights to access.
 	// This helps in multi-tenanted situations where a user can be given
 	// explicit cross-tenant access.
-	AllowedTenantAccess []string `bson:"allowedTenantAccess" json:"allowedTenantAccess,omitempty" xml:"allowedTenantAccess,omitempty"`
+	AllowedTenantAccess []string `bson:"allowed_tenant_access" json:"allowedTenantAccess,omitempty" xml:"allowedTenantAccess,omitempty"`
 
 	// AllowedPersonAccess contains a list of Person IDs that the user is
 	// allowed access to.
 	// This helps in multi-tenanted situations where a user can be given
 	// explicit access to other people accounts, for example, parents to
 	// children records.
-	AllowedPersonAccess []string `bson:"allowedPersonAccess" json:"allowedPersonAccess,omitempty" xml:"allowedPersonAccess,omitempty"`
+	AllowedPersonAccess []string `bson:"allowed_person_access" json:"allowedPersonAccess,omitempty" xml:"allowedPersonAccess,omitempty"`
 
 	// Scopes contains the permissions that the user is entitled to request.
 	Scopes []string `bson:"scopes" json:"scopes" xml:"scopes"`
@@ -51,7 +51,7 @@ type User struct {
 	// This enables applications where an external person data store is present.
 	// This helps in multi-tenanted situations where the person is unique, but
 	// the underlying user accounts can exist per tenant.
-	PersonID string `bson:"personId" json:"personId" xml:"personId"`
+	PersonID string `bson:"person_id" json:"personId" xml:"personId"`
 
 	// Disabled specifies whether the user has been disallowed from signing in
 	Disabled bool `bson:"disabled" json:"disabled" xml:"disabled"`
@@ -67,13 +67,13 @@ type User struct {
 	Password string `bson:"password,omitempty" json:"password,omitempty" xml:"password,omitempty"`
 
 	// FirstName stores the user's Last Name
-	FirstName string `bson:"firstName" json:"firstName" xml:"firstName"`
+	FirstName string `bson:"first_name" json:"firstName" xml:"firstName"`
 
 	// LastName stores the user's Last Name
-	LastName string `bson:"lastName" json:"lastName" xml:"lastName"`
+	LastName string `bson:"last_name" json:"lastName" xml:"lastName"`
 
 	// ProfileURI is a pointer to where their profile picture lives
-	ProfileURI string `bson:"profileUri" json:"profileUri,omitempty" xml:"profileUri,omitempty"`
+	ProfileURI string `bson:"profile_uri" json:"profileUri,omitempty" xml:"profileUri,omitempty"`
 }
 
 // FullName concatenates the User's First Name and Last Name for templating

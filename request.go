@@ -4,6 +4,7 @@ import (
 	// Standard Library Imports
 	"context"
 	"encoding/json"
+	"log"
 	"net/url"
 	"time"
 
@@ -11,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"github.com/pkg/errors"
-	log "github.com/sirupsen/logrus"
 )
 
 // Request is a concrete implementation of a fosite.Requester, extended to
@@ -20,40 +20,40 @@ type Request struct {
 	// ID contains the unique request identifier.
 	ID string `bson:"id" json:"id" xml:"id"`
 	// CreateTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"createTime" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"create_time" json:"createTime" xml:"createTime"`
 	// UpdateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"updateTime" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"update_time" json:"updateTime" xml:"updateTime"`
 	// RequestedAt is the time the request was made.
-	RequestedAt time.Time `bson:"requestedAt" json:"requestedAt" xml:"requestedAt"`
+	RequestedAt time.Time `bson:"requested_at" json:"requestedAt" xml:"requestedAt"`
 	// Signature contains a unique session signature.
 	Signature string `bson:"signature" json:"signature" xml:"signature"`
 	// ClientID contains a link to the Client that was used to authenticate
 	// this session.
-	ClientID string `bson:"clientId" json:"clientId" xml:"clientId"`
+	ClientID string `bson:"client_id" json:"clientId" xml:"clientId"`
 	// UserID contains the subject's unique ID which links back to a stored
 	// user account.
-	UserID string `bson:"userId" json:"userId" xml:"userId"`
+	UserID string `bson:"user_id" json:"userId" xml:"userId"`
 	// Scopes contains the scopes that the user requested.
 	RequestedScope fosite.Arguments `bson:"scopes" json:"scopes" xml:"scopes"`
 	// GrantedScope contains the list of scopes that the user was actually
 	// granted.
-	GrantedScope fosite.Arguments `bson:"grantedScopes" json:"grantedScopes" xml:"grantedScopes"`
+	GrantedScope fosite.Arguments `bson:"granted_scopes" json:"grantedScopes" xml:"grantedScopes"`
 	// RequestedAudience contains the audience the user requested.
-	RequestedAudience fosite.Arguments `bson:"requestedAudience" json:"requestedAudience" xml:"requestedAudience"`
+	RequestedAudience fosite.Arguments `bson:"requested_audience" json:"requestedAudience" xml:"requestedAudience"`
 	// GrantedAudience contains the list of audiences the user was actually
 	// granted.
-	GrantedAudience fosite.Arguments `bson:"grantedAudience" json:"grantedAudience" xml:"grantedAudience"`
+	GrantedAudience fosite.Arguments `bson:"granted_audience" json:"grantedAudience" xml:"grantedAudience"`
 	// Form contains the url values that were passed in to authenticate the
 	// user's client session.
-	Form url.Values `bson:"formData" json:"formData" xml:"formData"`
+	Form url.Values `bson:"form_data" json:"formData" xml:"formData"`
 	// Active is specifically used for Authorize Code flow revocation.
 	Active bool `bson:"active" json:"active" xml:"active"`
 	// Session contains the session data. The underlying structure differs
 	// based on OAuth strategy, so we need to store it as binary-encoded JSON.
 	// Otherwise, it can be stored but not unmarshalled back into a
 	// fosite.Session.
-	Session []byte `bson:"sessionData" json:"sessionData" xml:"sessionData"`
+	Session []byte `bson:"session_data" json:"sessionData" xml:"sessionData"`
 }
 
 // NewRequest returns a new Mongo Store request object.
@@ -79,7 +79,7 @@ func (r *Request) ToRequest(ctx context.Context, session fosite.Session, cm Clie
 			return nil, errors.WithStack(err)
 		}
 	} else {
-		log.Debug("Got an empty session in toRequest")
+		log.Printf("Got an empty session in toRequest")
 	}
 
 	client, err := cm.GetClient(ctx, r.ClientID)

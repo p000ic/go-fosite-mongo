@@ -10,7 +10,6 @@ import (
 
 	// External Imports
 	"github.com/ory/fosite"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -20,12 +19,7 @@ import (
 	"github.com/p000ic/go-fosite-mongo"
 )
 
-func init() {
-	// Bind a logger, but only to panic level. Leave it to the user to decide
-	// whether they want datastore logging or not.
-	SetLogger(logrus.New())
-	logger.Level = logrus.PanicLevel
-}
+func init() {}
 
 const (
 	defaultHost         = "localhost"
@@ -77,11 +71,6 @@ func (s *Store) NewSession(ctx context.Context) (context.Context, func(), error)
 func newSession(ctx context.Context, db *DB) (context.Context, func(), error) {
 	session, err := db.Client().StartSession()
 	if err != nil {
-		fields := logrus.Fields{
-			"package": "mongo",
-			"method":  "newSession",
-		}
-		logger.WithError(err).WithFields(fields).Error("error starting mongo session")
 		return ctx, nil, err
 	}
 
@@ -104,11 +93,7 @@ func closeSession(ctx context.Context, session mongo.Session) func() {
 func (s *Store) Close() {
 	err := s.DB.Client().Disconnect(context.Background())
 	if err != nil {
-		fields := logrus.Fields{
-			"package": "mongo",
-			"method":  "Close",
-		}
-		logger.WithError(err).WithFields(fields).Error("error closing mongo connection")
+		return
 	}
 }
 
@@ -202,23 +187,16 @@ func ConnectionInfo(cfg *Config) *options.ClientOptions {
 
 // Connect returns a connection to a mongo database.
 func Connect(cfg *Config) (*mongo.Database, error) {
-	log := logger.WithFields(logrus.Fields{
-		"package": "mongo",
-		"method":  "Connect",
-	})
-
 	ctx := context.Background()
 	dialInfo := ConnectionInfo(cfg)
 	client, err := mongo.Connect(ctx, dialInfo)
 	if err != nil {
-		log.WithError(err).Error("Unable to build mongo connection!")
 		return nil, err
 	}
 
 	// check connection works as mongo-go lazily connects.
 	err = client.Ping(ctx, nil)
 	if err != nil {
-		log.WithError(err).Error("Unable to connect to mongo! Have you configured your connection properly?")
 		return nil, err
 	}
 
@@ -227,14 +205,8 @@ func Connect(cfg *Config) (*mongo.Database, error) {
 
 // New allows for custom mongo configuration and custom hashers.
 func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
-	log := logger.WithFields(logrus.Fields{
-		"package": "mongo",
-		"method":  "NewFromConfig",
-	})
-
 	database, err := Connect(cfg)
 	if err != nil {
-		log.WithError(err).Error("Unable to connect to mongo! Are you sure mongo is running?")
 		return nil, err
 	}
 
@@ -275,19 +247,16 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 	var closeSession func()
 	ctx, closeSession, err := newSession(context.Background(), mongoDB)
 	if err != nil {
-		log.WithError(err).Error("error starting session")
 		return nil, err
 	}
 	defer closeSession()
 
 	// Configure DB collections, indices, TTLs e.t.c.
 	if err = configureDatabases(ctx, mongoClients, mongoDeniedJtis, mongoUsers, mongoRequests); err != nil {
-		log.WithError(err).Error("Unable to configure mongo collections!")
 		return nil, err
 	}
 	if cfg.TokenTTL > 0 {
 		if err = configureExpiry(ctx, int(cfg.TokenTTL), mongoRequests); err != nil {
-			log.WithError(err).Error("Unable to configure mongo expiry!")
 			return nil, err
 		}
 	}

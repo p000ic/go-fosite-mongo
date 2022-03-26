@@ -7,8 +7,6 @@ import (
 
 	// External Imports
 	"github.com/ory/fosite"
-	"github.com/sirupsen/logrus"
-
 	// Internal Imports
 	"github.com/p000ic/go-fosite-mongo"
 )
@@ -16,30 +14,12 @@ import (
 // CreateAuthorizeCodeSession stores the authorization request for a given
 // authorization code.
 func (r *RequestManager) CreateAuthorizeCodeSession(ctx context.Context, code string, request fosite.Requester) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityAuthorizationCodes,
-		"method":     "CreateAuthorizeCodeSession",
-	})
-
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "CreateAuthorizeCodeSession",
-	})
-	defer span.Finish()
-
 	// Store session request
 	_, err = r.Create(ctx, storage.EntityAuthorizationCodes, toMongo(code, request))
 	if err != nil {
 		if err == storage.ErrResourceExists {
-			log.WithError(err).Debug(logConflict)
 			return err
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return err
 	}
 
@@ -49,41 +29,23 @@ func (r *RequestManager) CreateAuthorizeCodeSession(ctx context.Context, code st
 // GetAuthorizeCodeSession hydrates the session based on the given code and
 // returns the authorization request.
 func (r *RequestManager) GetAuthorizeCodeSession(ctx context.Context, code string, session fosite.Session) (request fosite.Requester, err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityAuthorizationCodes,
-		"method":     "GetAuthorizeCodeSession",
-	})
-
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
 		var closeSession func()
 		ctx, closeSession, err = newSession(ctx, r.DB)
 		if err != nil {
-			log.WithError(err).Debug("error starting session")
 			return nil, err
 		}
 		defer closeSession()
 	}
 
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "GetAuthorizeCodeSession",
-	})
-	defer span.Finish()
-
 	// Get the stored request
 	req, err := r.GetBySignature(ctx, storage.EntityAuthorizationCodes, code)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return nil, err
 		}
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return nil, err
 	}
 
@@ -91,14 +53,10 @@ func (r *RequestManager) GetAuthorizeCodeSession(ctx context.Context, code strin
 	request, err = req.ToRequest(ctx, session, r.Clients)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return nil, err
 		}
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return nil, err
 	}
-
 	if !req.Active {
 		// If the authorization code has been invalidated with
 		// `InvalidateAuthorizeCodeSession`, this method should return the
@@ -107,7 +65,6 @@ func (r *RequestManager) GetAuthorizeCodeSession(ctx context.Context, code strin
 		// the ErrInvalidatedAuthorizeCode error!
 		return request, fosite.ErrInvalidatedAuthorizeCode
 	}
-
 	return request, err
 }
 
@@ -116,41 +73,23 @@ func (r *RequestManager) GetAuthorizeCodeSession(ctx context.Context, code strin
 // consecutive requests to GetAuthorizeCodeSession should return the
 // ErrInvalidatedAuthorizeCode error.
 func (r *RequestManager) InvalidateAuthorizeCodeSession(ctx context.Context, code string) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": storage.EntityAuthorizationCodes,
-		"method":     "InvalidateAuthorizeCodeSession",
-	})
-
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
 		var closeSession func()
 		ctx, closeSession, err = newSession(ctx, r.DB)
 		if err != nil {
-			log.WithError(err).Debug("error starting session")
 			return err
 		}
 		defer closeSession()
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "InvalidateAuthorizeCodeSession",
-	})
-	defer span.Finish()
-
 	// Get the stored request
 	req, err := r.GetBySignature(ctx, storage.EntityAuthorizationCodes, code)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return err
 		}
 		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return err
 	}
 
@@ -162,11 +101,8 @@ func (r *RequestManager) InvalidateAuthorizeCodeSession(ctx context.Context, cod
 	req, err = r.Update(ctx, storage.EntityAuthorizationCodes, req.ID, req)
 	if err != nil {
 		if err == fosite.ErrNotFound {
-			log.WithError(err).Debug(logNotFound)
 			return err
 		}
-		// Log to StdOut
-		log.WithError(err).Error(logError)
 		return err
 	}
 

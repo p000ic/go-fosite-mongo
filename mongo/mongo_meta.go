@@ -19,17 +19,17 @@ const (
 	// expiration indices.
 	IdxExpiry = "idxExpiry"
 
-	// IdxUserID provides a mongo index based on userId
-	IdxUserID = "idxUserId"
+	// IdxUserID provides a mongo index based on userID
+	IdxUserID = "idxUserID"
 
 	// IdxUsername provides a mongo index based on username
 	IdxUsername = "idxUsername"
 
 	// IdxSessionID provides a mongo index based on Session
-	IdxSessionID = "idxSessionId"
+	IdxSessionID = "idxSessionID"
 
 	// IdxSignatureID provides a mongo index based on Signature
-	IdxSignatureID = "idxSignatureId"
+	IdxSignatureID = "idxSignatureID"
 
 	// IdxCompoundRequester provides a mongo compound index based on Client ID
 	// and User ID for when filtering request records.

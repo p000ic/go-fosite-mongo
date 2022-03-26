@@ -10,9 +10,7 @@ import (
 
 	// External Imports
 	"github.com/google/uuid"
-	ot "github.com/opentracing/opentracing-go"
 	"github.com/ory/fosite"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 
@@ -98,16 +96,9 @@ func (r *RequestManager) Configure(ctx context.Context) (err error) {
 		}
 		indices = append(indices, signatureIndex)
 
-		log := logger.WithFields(logrus.Fields{
-			"package":    "mongo",
-			"collection": entityName,
-			"method":     "Configure",
-		})
-
 		collection := r.DB.Collection(entityName)
 		_, err = collection.Indexes().CreateMany(ctx, indices)
 		if err != nil {
-			log.WithError(err).Error(logError)
 			return err
 		}
 	}
@@ -126,17 +117,10 @@ func (r *RequestManager) ConfigureExpiryWithTTL(ctx context.Context, ttl int) er
 	}
 
 	for _, entityName := range collections {
-		log := logger.WithFields(logrus.Fields{
-			"package":    "mongo",
-			"collection": entityName,
-			"method":     "ConfigureExpiryWithTTL",
-		})
-
 		index := NewExpiryIndex(IdxExpiry+"RequestedAt", "requestedAt", ttl)
 		collection := r.DB.Collection(entityName)
 		_, err := collection.Indexes().CreateOne(ctx, index)
 		if err != nil {
-			log.WithError(err).Error(logError)
 			return err
 		}
 	}
@@ -146,39 +130,18 @@ func (r *RequestManager) ConfigureExpiryWithTTL(ctx context.Context, ttl int) er
 
 // getConcrete returns a Request resource.
 func (r *RequestManager) getConcrete(ctx context.Context, entityName string, requestID string) (result storage.Request, err error) {
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "getConcrete",
-		"id":         requestID,
-	})
-
 	// Build Query
 	query := bson.M{
 		"id": requestID,
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "getConcrete",
-		Query:   query,
-	})
-	defer span.Finish()
 
 	var request storage.Request
 	collection := r.DB.Collection(entityName)
 	err = collection.FindOne(ctx, query).Decode(&request)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.WithError(err).Debug(logNotFound)
 			return result, fosite.ErrNotFound
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return result, err
 	}
 
@@ -187,13 +150,6 @@ func (r *RequestManager) getConcrete(ctx context.Context, entityName string, req
 
 // List returns a list of Request resources that match the provided inputs.
 func (r *RequestManager) List(ctx context.Context, entityName string, filter storage.ListRequestsRequest) (results []storage.Request, err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "List",
-	})
-
 	// Build Query
 	query := bson.M{}
 	if filter.ClientID != "" {
@@ -214,32 +170,15 @@ func (r *RequestManager) List(ctx context.Context, entityName string, filter sto
 	if len(filter.GrantedScopesUnion) > 0 {
 		query["scopes"] = bson.M{"$in": filter.GrantedScopesUnion}
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "List",
-		Query:   query,
-	})
-	defer span.Finish()
-
 	collection := r.DB.Collection(entityName)
 	cursor, err := collection.Find(ctx, query)
 	if err != nil {
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return results, err
 	}
 
 	var requests []storage.Request
 	err = cursor.All(ctx, &requests)
 	if err != nil {
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return results, err
 	}
 
@@ -249,13 +188,6 @@ func (r *RequestManager) List(ctx context.Context, entityName string, filter sto
 // Create creates the new Request resource and returns the newly created Request
 // resource.
 func (r *RequestManager) Create(ctx context.Context, entityName string, request storage.Request) (result storage.Request, err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "Create",
-	})
-
 	// Enable developers to provide their own IDs
 	if request.ID == "" {
 		request.ID = uuid.NewString()
@@ -266,31 +198,13 @@ func (r *RequestManager) Create(ctx context.Context, entityName string, request 
 	if request.RequestedAt.IsZero() {
 		request.RequestedAt = time.Now()
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "Create",
-	})
-	defer span.Finish()
-
 	// Create resource
 	collection := r.DB.Collection(entityName)
 	_, err = collection.InsertOne(ctx, request)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			// Log to StdOut
-			log.WithError(err).Debug(logConflict)
-			// Log to OpenTracing
-			otLogErr(span, err)
 			return result, storage.ErrResourceExists
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogQuery(span, request)
-		otLogErr(span, err)
 		return result, err
 	}
 
@@ -305,38 +219,17 @@ func (r *RequestManager) Get(ctx context.Context, entityName string, requestID s
 // GetBySignature returns a Request resource, if the presented signature returns
 // a match.
 func (r *RequestManager) GetBySignature(ctx context.Context, entityName string, signature string) (result storage.Request, err error) {
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "GetBySignature",
-	})
-
 	// Build Query
 	query := bson.M{
 		"signature": signature,
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "GetBySignature",
-		Query:   query,
-	})
-	defer span.Finish()
-
 	var request storage.Request
 	collection := r.DB.Collection(entityName)
 	err = collection.FindOne(ctx, query).Decode(&request)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.WithError(err).Debug(logNotFound)
 			return result, fosite.ErrNotFound
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return result, err
 	}
 
@@ -346,14 +239,6 @@ func (r *RequestManager) GetBySignature(ctx context.Context, entityName string, 
 // Update updates the Request resource and attributes and returns the updated
 // Request resource.
 func (r *RequestManager) Update(ctx context.Context, entityName string, requestID string, updatedRequest storage.Request) (result storage.Request, err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "Update",
-		"id":         requestID,
-	})
-
 	// Deny updating the entity Id
 	updatedRequest.ID = requestID
 	// Update modified time
@@ -363,39 +248,16 @@ func (r *RequestManager) Update(ctx context.Context, entityName string, requestI
 	selector := bson.M{
 		"id": requestID,
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager:  "RequestManager",
-		Method:   "Update",
-		Selector: selector,
-	})
-	defer span.Finish()
-
 	collection := r.DB.Collection(entityName)
 	res, err := collection.ReplaceOne(ctx, selector, updatedRequest)
 	if err != nil {
 		if mongo.IsDuplicateKeyError(err) {
-			// Log to StdOut
-			log.WithError(err).Debug(logConflict)
-			// Log to OpenTracing
-			otLogErr(span, err)
 			return result, storage.ErrResourceExists
 		}
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogQuery(span, updatedRequest)
-		otLogErr(span, err)
 		return result, err
 	}
 
 	if res.MatchedCount == 0 {
-		// Log to StdOut
-		log.WithError(err).Debug(logNotFound)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return result, fosite.ErrNotFound
 	}
 
@@ -404,42 +266,17 @@ func (r *RequestManager) Update(ctx context.Context, entityName string, requestI
 
 // Delete deletes the specified Request resource.
 func (r *RequestManager) Delete(ctx context.Context, entityName string, requestID string) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "Delete",
-		"id":         requestID,
-	})
-
 	// Build Query
 	query := bson.M{
 		"id": requestID,
 	}
-
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "Delete",
-		Query:   query,
-	})
-	defer span.Finish()
-
 	collection := r.DB.Collection(entityName)
 	res, err := collection.DeleteOne(ctx, query)
 	if err != nil {
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return err
 	}
 
 	if res.DeletedCount == 0 {
-		// Log to StdOut
-		log.WithError(err).Debug(logNotFound)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return fosite.ErrNotFound
 	}
 
@@ -449,41 +286,18 @@ func (r *RequestManager) Delete(ctx context.Context, entityName string, requestI
 // DeleteBySignature deletes the specified request resource, if the presented
 // signature returns a match.
 func (r *RequestManager) DeleteBySignature(ctx context.Context, entityName string, signature string) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "DeleteBySignature",
-	})
-
 	// Build Query
 	query := bson.M{
 		"signature": signature,
 	}
 
-	// Trace how long the Mongo operation takes to complete.
-	span, _ := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "DeleteBySignature",
-		Query:   query,
-	})
-	defer span.Finish()
-
 	collection := r.DB.Collection(entityName)
 	res, err := collection.DeleteOne(ctx, query)
 	if err != nil {
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return err
 	}
 
 	if res.DeletedCount == 0 {
-		// Log to StdOut
-		log.WithError(err).Debug(logNotFound)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return fosite.ErrNotFound
 	}
 
@@ -528,12 +342,10 @@ func (r *RequestManager) GetPublicKeys(ctx context.Context, issuer string, subje
 			if len(subKeys.Keys) == 0 {
 				return nil, fosite.ErrNotFound
 			}
-
 			keys := make([]jose.JSONWebKey, 0, len(subKeys.Keys))
 			for _, keyScopes := range subKeys.Keys {
 				keys = append(keys, *keyScopes.Key)
 			}
-
 			return &jose.JSONWebKeySet{Keys: keys}, nil
 		}
 	}
@@ -555,34 +367,9 @@ func (r *RequestManager) GetPublicKeyScopes(ctx context.Context, issuer string, 
 
 // revokeToken deletes a token based on the provided request id.
 func (r *RequestManager) revokeToken(ctx context.Context, entityName string, requestID string) (err error) {
-	// Initialize contextual method logger
-	log := logger.WithFields(logrus.Fields{
-		"package":    "mongo",
-		"collection": entityName,
-		"method":     "revokeToken",
-		"id":         requestID,
-	})
-
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "RequestManager",
-		Method:  "revokeToken",
-		Query:   requestID,
-		CustomTags: []ot.Tag{{
-			Key:   "collection",
-			Value: entityName,
-		}},
-	})
-	defer span.Finish()
-
 	err = r.Delete(ctx, entityName, requestID)
 	if err != nil && err != fosite.ErrNotFound {
 		// Note: If the token is not found, we can declare it revoked.
-
-		// Log to StdOut
-		log.WithError(err).Error(logError)
-		// Log to OpenTracing
-		otLogErr(span, err)
 		return err
 	}
 
