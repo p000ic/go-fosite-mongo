@@ -73,13 +73,13 @@ type AuthUserMigrator interface {
 
 	// AuthenticateMigration enables developers to supply your own
 	// authentication function, which in turn, if true, will migrate the secret
-	// to the hasher implemented within fosite.
+	// to the hashes implemented within fosite.
 	AuthenticateMigration(ctx context.Context, currentAuth AuthUserFunc, userID string, password string) (User, error)
 }
 
-// Configurer enables an implementer to configure required migrations, indexing
+// Configure enables an implementer to configure required migrations, indexing
 // and is called when the datastore connects.
-type Configurer interface {
+type Configure interface {
 	// Configure configures the underlying database engine to match
 	// requirements.
 	// Configure will be called each time a service is started, so ensure this
@@ -89,7 +89,7 @@ type Configurer interface {
 	Configure(ctx context.Context) error
 }
 
-type Expirer interface {
+type Expire interface {
 	// ConfigureExpiryWithTTL enables a datastore provider to purge data
 	// automatically once expired.
 	ConfigureExpiryWithTTL(ctx context.Context, ttl int) error

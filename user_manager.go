@@ -4,7 +4,7 @@ import "context"
 
 // UserManager provides a generic interface to users in order to build a DataStore
 type UserManager interface {
-	Configurer
+	Configure
 	UserStorer
 	AuthUserMigrator
 }
@@ -17,8 +17,6 @@ type UserStorer interface {
 	GetByUsername(ctx context.Context, username string) (User, error)
 	Update(ctx context.Context, userID string, user User) (User, error)
 	Delete(ctx context.Context, userID string) error
-
-	// Utility Functions
 	Authenticate(ctx context.Context, username string, password string) (User, error)
 	AuthenticateByID(ctx context.Context, userID string, password string) (User, error)
 	AuthenticateByUsername(ctx context.Context, username string, password string) (User, error)

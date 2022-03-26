@@ -20,7 +20,7 @@ import (
 // UserManager provides a mongo backed implementation for user resources.
 //
 // Implements:
-// - storage.Configurer
+// - storage.Configure
 // - storage.AuthUserMigrator
 // - storage.UserStorer
 // - storage.UserManager
@@ -29,7 +29,7 @@ type UserManager struct {
 	Hasher fosite.Hasher
 }
 
-// Configure implements storage.Configurer.
+// Configure implements storage.Configure.
 func (u *UserManager) Configure(ctx context.Context) (err error) {
 	log := logger.WithFields(logrus.Fields{
 		"package":    "mongo",

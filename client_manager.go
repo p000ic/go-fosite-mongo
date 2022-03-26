@@ -3,6 +3,7 @@ package storage
 import (
 	// Standard Library Imports
 	"context"
+	"time"
 
 	// External Imports
 	"github.com/ory/fosite"
@@ -11,14 +12,14 @@ import (
 // ClientManager provides a generic interface to clients in order to build a
 // Datastore backend.
 type ClientManager interface {
-	Configurer
-	ClientStorer
+	Configure
+	ClientStore
 	AuthClientMigrator
 }
 
-// ClientStorer conforms to fosite.Storage and provides methods
-type ClientStorer interface {
-	// fosite.Storage provides get client.
+// ClientStore conforms to fosite.Storage and provides methods
+type ClientStore interface {
+	// Storage fosite.Storage provides get client.
 	fosite.Storage
 
 	List(ctx context.Context, filter ListClientsRequest) ([]Client, error)
@@ -26,11 +27,14 @@ type ClientStorer interface {
 	Get(ctx context.Context, clientID string) (Client, error)
 	Update(ctx context.Context, clientID string, client Client) (Client, error)
 	Delete(ctx context.Context, clientID string) error
-
-	// Utility Functions
 	Authenticate(ctx context.Context, clientID string, secret string) (Client, error)
 	GrantScopes(ctx context.Context, clientID string, scopes []string) (Client, error)
 	RemoveScopes(ctx context.Context, clientID string, scopes []string) (Client, error)
+
+	IsJWTUsed(ctx context.Context, jti string) (bool, error)
+	MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error
+	ClientAssertionJWTValid(_ context.Context, jti string) error
+	SetClientAssertionJWT(_ context.Context, jti string, exp time.Time) error
 }
 
 // ListClientsRequest enables listing and filtering client records.

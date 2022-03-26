@@ -10,8 +10,8 @@ func TestUserMongoManager_ImplementsStorageConfigurer(t *testing.T) {
 	u := &UserManager{}
 
 	var i interface{} = u
-	if _, ok := i.(storage.Configurer); !ok {
-		t.Error("UserManager does not implement interface storage.Configurer")
+	if _, ok := i.(storage.Configure); !ok {
+		t.Error("UserManager does not implement interface storage.Configure")
 	}
 }
 

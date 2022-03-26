@@ -336,7 +336,7 @@ func (c Client) Equal(x Client) bool {
 	return true
 }
 
-// IsEmpty returns whether or not the client resource is an empty record.
+// IsEmpty returns whether the client resource is an empty record.
 func (c Client) IsEmpty() bool {
 	return c.Equal(Client{})
 }

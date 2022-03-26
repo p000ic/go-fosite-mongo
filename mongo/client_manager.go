@@ -24,12 +24,12 @@ import (
 // - fosite.ClientManager
 // - storage.AuthClientMigrator
 // - storage.ClientManager
-// - storage.ClientStorer
+// - storage.ClientStore
 type ClientManager struct {
 	DB     *DB
 	Hasher fosite.Hasher
 
-	DeniedJTIs storage.DeniedJTIStorer
+	DeniedJTIs storage.DeniedJTIStore
 }
 
 // Configure sets up the Mongo collection for OAuth 2.0 client resources.
@@ -587,7 +587,7 @@ func (c *ClientManager) Authenticate(ctx context.Context, clientID string, secre
 }
 
 // AuthenticateMigration is provided to authenticate clients that have been
-// migrated from an another system that may use a different underlying hashing
+// migrated from a system that may use a different underlying hashing
 // mechanism.
 // It authenticates a Client first by using the provided AuthClientFunc which,
 // if fails, will otherwise try to authenticate using the configured
@@ -756,4 +756,17 @@ func (c *ClientManager) RemoveScopes(ctx context.Context, clientID string, scope
 	client.DisableScopeAccess(scopes...)
 
 	return c.Update(ctx, client.ID, client)
+}
+
+func (c *ClientManager) IsJWTUsed(ctx context.Context, jti string) (bool, error) {
+	err := c.ClientAssertionJWTValid(ctx, jti)
+	if err != nil {
+		return true, nil
+	}
+
+	return false, nil
+}
+
+func (c *ClientManager) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error {
+	return c.SetClientAssertionJWT(ctx, jti, exp)
 }

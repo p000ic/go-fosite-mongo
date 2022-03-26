@@ -15,8 +15,8 @@ func TestClientMongoManager_ImplementsStorageConfigurer(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
-	if _, ok := i.(storage.Configurer); !ok {
-		t.Error("ClientManager does not implement interface storage.Configurer")
+	if _, ok := i.(storage.Configure); !ok {
+		t.Error("ClientManager does not implement interface storage.Configure")
 	}
 }
 
@@ -51,8 +51,8 @@ func TestClientMongoManager_ImplementsStorageClientStorer(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
-	if _, ok := i.(storage.ClientStorer); !ok {
-		t.Error("ClientManager does not implement interface storage.ClientStorer")
+	if _, ok := i.(storage.ClientStore); !ok {
+		t.Error("ClientManager does not implement interface storage.ClientStore")
 	}
 }
 

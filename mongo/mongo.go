@@ -308,7 +308,7 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 
 // configureDatabases calls the configuration handler for the provided
 // configurers.
-func configureDatabases(ctx context.Context, configurers ...storage.Configurer) error {
+func configureDatabases(ctx context.Context, configurers ...storage.Configure) error {
 	for _, configurer := range configurers {
 		if err := configurer.Configure(ctx); err != nil {
 			return err
@@ -320,7 +320,7 @@ func configureDatabases(ctx context.Context, configurers ...storage.Configurer) 
 
 // configureExpiry calls the configuration handler for the provided expirers.
 // ttl should be a positive integer.
-func configureExpiry(ctx context.Context, ttl int, expirers ...storage.Expirer) error {
+func configureExpiry(ctx context.Context, ttl int, expirers ...storage.Expire) error {
 	for _, expirer := range expirers {
 		if err := expirer.ConfigureExpiryWithTTL(ctx, ttl); err != nil {
 			return err
@@ -400,7 +400,6 @@ func generateIndexKeys(keys ...string) (indexKeys bson.D) {
 // generateIndexOptions generates new index options.
 func generateIndexOptions(name string, unique bool) *options.IndexOptions {
 	opts := options.Index().
-		SetBackground(true).
 		SetSparse(true).
 		SetUnique(unique)
 

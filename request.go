@@ -73,7 +73,7 @@ func NewRequest() Request {
 }
 
 // ToRequest transforms a mongo request to a fosite.Request
-func (r *Request) ToRequest(ctx context.Context, session fosite.Session, cm ClientStorer) (*fosite.Request, error) {
+func (r *Request) ToRequest(ctx context.Context, session fosite.Session, cm ClientStore) (*fosite.Request, error) {
 	if session != nil {
 		if err := json.Unmarshal(r.Session, session); err != nil {
 			return nil, errors.WithStack(err)

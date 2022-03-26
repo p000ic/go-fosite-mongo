@@ -4,6 +4,8 @@ import (
 	// Standard Library Imports
 	"context"
 	"encoding/json"
+	"gopkg.in/square/go-jose.v2"
+	"sync"
 	"time"
 
 	// External Imports
@@ -18,6 +20,21 @@ import (
 	"github.com/p000ic/go-fosite-mongo"
 )
 
+type IssuerPublicKeys struct {
+	Issuer    string
+	KeysBySub map[string]SubjectPublicKeys
+}
+
+type SubjectPublicKeys struct {
+	Subject string
+	Keys    map[string]PublicKeyScopes
+}
+
+type PublicKeyScopes struct {
+	Key    *jose.JSONWebKey
+	Scopes []string
+}
+
 // RequestManager manages the main Mongo Session for a Request.
 type RequestManager struct {
 	// DB contains the Mongo connection that holds the base session that can be
@@ -27,16 +44,28 @@ type RequestManager struct {
 	// Clients provides access to Client entities in order to create, read,
 	// update and delete resources from the clients collection.
 	// A client is required when cross referencing scope access rights.
-	Clients storage.ClientStorer
+	Clients storage.ClientStore
 
 	// Users provides access to User entities in order to create, read, update
 	// and delete resources from the user collection.
 	// Users are required when the Password Credentials Grant, is implemented
 	// in order to find and authenticate users.
 	Users storage.UserStorer
+
+	// Public keys to check signature in auth grant jwt assertion.
+	IssuerPublicKeys map[string]IssuerPublicKeys
+
+	clientsMutex          sync.RWMutex
+	authorizeCodesMutex   sync.RWMutex
+	idSessionsMutex       sync.RWMutex
+	accessTokensMutex     sync.RWMutex
+	refreshTokensMutex    sync.RWMutex
+	pkcesMutex            sync.RWMutex
+	usersMutex            sync.RWMutex
+	issuerPublicKeysMutex sync.RWMutex
 }
 
-// Configure implements storage.Configurer.
+// Configure implements storage.Configure.
 func (r *RequestManager) Configure(ctx context.Context) (err error) {
 	// In terms of the underlying entity for session data, the model is the
 	// same across the following entities. I have decided to logically break
@@ -86,7 +115,7 @@ func (r *RequestManager) Configure(ctx context.Context) (err error) {
 	return nil
 }
 
-// ConfigureExpiryWithTTL implements storage.Expirer.
+// ConfigureExpiryWithTTL implements storage.Expire.
 func (r *RequestManager) ConfigureExpiryWithTTL(ctx context.Context, ttl int) error {
 	collections := []string{
 		storage.EntityAccessTokens,
@@ -469,6 +498,59 @@ func (r *RequestManager) RevokeRefreshToken(ctx context.Context, requestID strin
 // RevokeAccessToken deletes the access token session.
 func (r *RequestManager) RevokeAccessToken(ctx context.Context, requestID string) (err error) {
 	return r.revokeToken(ctx, storage.EntityAccessTokens, requestID)
+}
+
+func (r *RequestManager) RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error {
+	// no configuration option is available; grace period is not available with memory store
+	return r.RevokeRefreshToken(ctx, requestID)
+}
+
+func (r *RequestManager) GetPublicKey(ctx context.Context, issuer string, subject string, keyId string) (*jose.JSONWebKey, error) {
+	r.issuerPublicKeysMutex.RLock()
+	defer r.issuerPublicKeysMutex.RUnlock()
+
+	if issuerKeys, ok := r.IssuerPublicKeys[issuer]; ok {
+		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {
+			if keyScopes, ok := subKeys.Keys[keyId]; ok {
+				return keyScopes.Key, nil
+			}
+		}
+	}
+
+	return nil, fosite.ErrNotFound
+}
+
+func (r *RequestManager) GetPublicKeys(ctx context.Context, issuer string, subject string) (*jose.JSONWebKeySet, error) {
+	r.issuerPublicKeysMutex.RLock()
+	defer r.issuerPublicKeysMutex.RUnlock()
+	if issuerKeys, ok := r.IssuerPublicKeys[issuer]; ok {
+		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {
+			if len(subKeys.Keys) == 0 {
+				return nil, fosite.ErrNotFound
+			}
+
+			keys := make([]jose.JSONWebKey, 0, len(subKeys.Keys))
+			for _, keyScopes := range subKeys.Keys {
+				keys = append(keys, *keyScopes.Key)
+			}
+
+			return &jose.JSONWebKeySet{Keys: keys}, nil
+		}
+	}
+	return nil, fosite.ErrNotFound
+}
+
+func (r *RequestManager) GetPublicKeyScopes(ctx context.Context, issuer string, subject string, keyId string) ([]string, error) {
+	r.issuerPublicKeysMutex.RLock()
+	defer r.issuerPublicKeysMutex.RUnlock()
+	if issuerKeys, ok := r.IssuerPublicKeys[issuer]; ok {
+		if subKeys, ok := issuerKeys.KeysBySub[subject]; ok {
+			if keyScopes, ok := subKeys.Keys[keyId]; ok {
+				return keyScopes.Scopes, nil
+			}
+		}
+	}
+	return nil, fosite.ErrNotFound
 }
 
 // revokeToken deletes a token based on the provided request id.

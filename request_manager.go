@@ -3,7 +3,7 @@ package storage
 import (
 	// Standard Library Imports
 	"context"
-
+	"gopkg.in/square/go-jose.v2"
 	// External Imports
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
@@ -13,30 +13,35 @@ import (
 // RequestManager provides an interface in order to build a compliant Fosite
 // storage backend.
 type RequestManager interface {
-	Configurer
-	RequestStorer
+	Configure
+	RequestStore
 }
 
-// RequestStorer implements all fosite interfaces required to be a storage
+// RequestStore implements all fosite interfaces required to be a storage
 // driver.
-type RequestStorer interface {
-	// OAuth2 storage interfaces.
+type RequestStore interface {
+	// CoreStorage OAuth2 storage interfaces.
 	oauth2.CoreStorage
 
-	// OpenID storage interfaces.
+	// OpenIDConnectRequestStorage OpenID storage interfaces.
 	openid.OpenIDConnectRequestStorage
 
-	// Proof Key for Code Exchange storage interfaces.
+	// PKCERequestStorage Proof Key for Code Exchange storage interfaces.
 	pkce.PKCERequestStorage
 
-	// Implements the rest of oauth2.TokenRevocationStorage
+	GetPublicKey(ctx context.Context, issuer string, subject string, keyId string) (*jose.JSONWebKey, error)
+	GetPublicKeys(ctx context.Context, issuer string, subject string) (*jose.JSONWebKeySet, error)
+	GetPublicKeyScopes(ctx context.Context, issuer string, subject string, keyId string) ([]string, error)
+
+	// RevokeRefreshToken Implements the rest of oauth2.TokenRevocationStorage
 	RevokeRefreshToken(ctx context.Context, requestID string) error
 	RevokeAccessToken(ctx context.Context, requestID string) error
+	RevokeRefreshTokenMaybeGracePeriod(ctx context.Context, requestID string, signature string) error
 
-	// Implements the rest of oauth2.ResourceOwnerPasswordCredentialsGrantStorage
+	// Authenticate Implements the rest of oauth2.ResourceOwnerPasswordCredentialsGrantStorage
 	Authenticate(ctx context.Context, username string, secret string) error
 
-	// Standard CRUD Storage API
+	// List Standard CRUD Storage API
 	List(ctx context.Context, entityName string, filter ListRequestsRequest) ([]Request, error)
 	Create(ctx context.Context, entityName string, request Request) (Request, error)
 	Get(ctx context.Context, entityName string, requestID string) (Request, error)

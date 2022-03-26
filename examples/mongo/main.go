@@ -9,9 +9,9 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/p000ic/go-fosite-mongo/authorizationserver"
-	"github.com/p000ic/go-fosite-mongo/oauth2client"
-	"github.com/p000ic/go-fosite-mongo/resourceserver"
+	"github.com/p000ic/go-fosite-mongo/examples/authorizationserver"
+	"github.com/p000ic/go-fosite-mongo/examples/oauth2client"
+	"github.com/p000ic/go-fosite-mongo/examples/resourceserver"
 	log "github.com/sirupsen/logrus"
 	goauth "golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -59,7 +59,7 @@ func main() {
 	// ### protected resource ###
 	http.HandleFunc("/protected", resourceserver.ProtectedEndpoint(appClientConf))
 
-	fmt.Println("Please open your webbrowser at http://localhost:" + port)
+	fmt.Println("Please open your web browser at http://localhost:" + port)
 	_ = exec.Command("open", "http://localhost:"+port).Run()
 
 	wg := sync.WaitGroup{}
