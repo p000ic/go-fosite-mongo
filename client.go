@@ -11,11 +11,11 @@ type Client struct {
 	ID string `bson:"id" json:"id" xml:"id"`
 
 	// createTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"create_at" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"created_at" json:"createTime" xml:"createTime"`
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"update_at" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"updated_at" json:"updateTime" xml:"updateTime"`
 
 	// AllowedAudiences contains a list of Audiences that the client has been
 	// given rights to access.

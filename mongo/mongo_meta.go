@@ -20,16 +20,16 @@ const (
 	IdxExpiry = "idxExpiry"
 
 	// IdxUserID provides a mongo index based on userID
-	IdxUserID = "idxUserID"
+	IdxUserID = "idxUserId"
 
 	// IdxUsername provides a mongo index based on username
 	IdxUsername = "idxUsername"
 
 	// IdxSessionID provides a mongo index based on Session
-	IdxSessionID = "idxSessionID"
+	IdxSessionID = "idxSessionId"
 
 	// IdxSignatureID provides a mongo index based on Signature
-	IdxSignatureID = "idxSignatureID"
+	IdxSignatureID = "idxSignatureId"
 
 	// IdxCompoundRequester provides a mongo compound index based on Client ID
 	// and User ID for when filtering request records.

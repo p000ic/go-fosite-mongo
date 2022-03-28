@@ -21,11 +21,11 @@ type User struct {
 	ID string `bson:"id" json:"id" xml:"id"`
 
 	// createTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"create_time" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"created_at" json:"createTime" xml:"createTime"`
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"update_time" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"updated_at" json:"updateTime" xml:"updateTime"`
 
 	// AllowedTenantAccess contains the Tenant IDs that the user has been given
 	// rights to access.

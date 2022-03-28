@@ -472,13 +472,6 @@ func (c *ClientManager) RemoveScopes(ctx context.Context, clientID string, scope
 		defer closeSession()
 	}
 
-	// Trace how long the Mongo operation takes to complete.
-	span, ctx := traceMongoCall(ctx, dbTrace{
-		Manager: "ClientManager",
-		Method:  "RemoveScopes",
-	})
-	defer span.Finish()
-
 	client, err := c.getConcrete(ctx, clientID)
 	if err != nil {
 		if err == fosite.ErrNotFound {

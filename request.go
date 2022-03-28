@@ -20,10 +20,10 @@ type Request struct {
 	// ID contains the unique request identifier.
 	ID string `bson:"id" json:"id" xml:"id"`
 	// CreateTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"create_time" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"created_at" json:"createTime" xml:"createTime"`
 	// UpdateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"update_time" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"updated_at" json:"updateTime" xml:"updateTime"`
 	// RequestedAt is the time the request was made.
 	RequestedAt time.Time `bson:"requested_at" json:"requestedAt" xml:"requestedAt"`
 	// Signature contains a unique session signature.
