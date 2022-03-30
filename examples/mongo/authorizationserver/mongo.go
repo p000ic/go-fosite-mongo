@@ -15,7 +15,7 @@ import (
 func NewExampleMongoStore() *mongo.Store {
 	ctx := context.Background()
 	cfg := mongo.DefaultConfig()
-	cfg.DatabaseName = "fositeStorageDemo"
+	cfg.DatabaseName = "oauth2"
 	store, err := mongo.New(cfg, nil)
 	if err != nil {
 		// Make sure to check in on your mongo instance and drop the database

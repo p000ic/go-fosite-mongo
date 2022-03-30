@@ -66,13 +66,13 @@ func authEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// Therefore, you both access token and authorize code will have the same "exp" claim. If this is something you
 	// need let us know on github.
 	//
-	// mySessionData.JWTClaims.ExpiresAt = time.Now().Add(time.Day)
+	//mySessionData.JWTClaims.ExpiresAt = time.Now().Add(time.Day)
 
 	// It's also wise to check the requested scopes, e.g.:
-	// if ar.GetRequestedScopes().Has("admin") {
-	//     http.Error(rw, "you're not allowed to do that", http.StatusForbidden)
-	//     return
-	// }
+	//if ar.GetRequestedScopes().Has("admin") {
+	//	http.Error(rw, "you're not allowed to do that", http.StatusForbidden)
+	//	return
+	//}
 
 	// Now we need to get a response. This is the place where the AuthorizeEndpointHandlers kick in and start processing the request.
 	// NewAuthorizeResponse is capable of running multiple response type handlers which in turn enables this library
