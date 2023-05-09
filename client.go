@@ -15,7 +15,7 @@ type Client struct {
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"updated_at" json:"created_at" xml:"created_at"`
+	UpdateTime int64 `bson:"updated_at" json:"updated_at" xml:"updated_at"`
 
 	// AllowedAudiences contains a list of Audiences that the client has been
 	// given rights to access.
