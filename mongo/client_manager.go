@@ -128,12 +128,12 @@ func (c *ClientManager) Create(ctx context.Context, client storage.Client) (resu
 		client.CreateTime = time.Now().Unix()
 	}
 
-	// // Hash incoming secret
-	// hash, err := c.Hasher.Hash(ctx, []byte(client.Secret))
-	// if err != nil {
-	// 	return result, err
-	// }
-	// client.Secret = string(hash)
+	// Hash incoming secret
+	hash, err := c.Hasher.Hash(ctx, []byte(client.Secret))
+	if err != nil {
+		return result, err
+	}
+	client.Secret = string(hash)
 
 	// Create resource
 	collection := c.DB.Collection(storage.EntityClients)
