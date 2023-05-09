@@ -561,7 +561,7 @@ func TestClientManager_Update_ShouldChangePassword(t *testing.T) {
 	expected := createClient(ctx, t, store)
 	oldHash := expected.Secret
 
-	// Perform a password update..
+	// Perform a password update.
 	expected.Secret = newSecret
 
 	got, err := store.ClientManager.Update(ctx, expected.ID, expected)

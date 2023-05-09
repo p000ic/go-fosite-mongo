@@ -6,40 +6,40 @@ import (
 
 // Client provides the structure of an OAuth2.0 Client.
 type Client struct {
-	//// Client Meta
+	// // Client Meta
 	// ID is the id for this client.
 	ID string `bson:"id" json:"id" xml:"id"`
 
 	// createTime is when the resource was created in seconds from the epoch.
-	CreateTime int64 `bson:"created_at" json:"createTime" xml:"createTime"`
+	CreateTime int64 `bson:"created_at" json:"created_at" xml:"created_at"`
 
 	// updateTime is the last time the resource was modified in seconds from
 	// the epoch.
-	UpdateTime int64 `bson:"updated_at" json:"updateTime" xml:"updateTime"`
+	UpdateTime int64 `bson:"updated_at" json:"created_at" xml:"created_at"`
 
 	// AllowedAudiences contains a list of Audiences that the client has been
 	// given rights to access.
-	AllowedAudiences []string `bson:"allowed_audiences" json:"allowedAudiences,omitempty" xml:"allowedAudiences,omitempty"`
+	AllowedAudiences []string `bson:"allowed_audiences" json:"allowed_audiences,omitempty" xml:"allowed_audiences,omitempty"`
 
 	// AllowedRegions contains a list of regions that the client has been
 	// given permission to access. This enables filtering for clients based on
 	// geographic region.
-	AllowedRegions []string `bson:"allowed_regions" json:"allowedRegions,omitempty" xml:"allowedRegions,omitempty"`
+	AllowedRegions []string `bson:"allowed_regions" json:"allowed_regions,omitempty" xml:"allowed_regions,omitempty"`
 
 	// AllowedTenantAccess contains a list of Tenants that the client has been
 	// given rights to access.
-	AllowedTenantAccess []string `bson:"allowed_tenant_access" json:"allowedTenantAccess,omitempty" xml:"allowedTenantAccess,omitempty"`
+	AllowedTenantAccess []string `bson:"allowed_tenant_access" json:"allowed_tenant_access,omitempty" xml:"allowed_tenant_access,omitempty"`
 
 	// GrantTypes contains a list of grant types the client is allowed to use.
 	//
 	// Pattern: client_credentials|authorize_code|implicit|refresh_token
-	GrantTypes []string `bson:"grantTypes" json:"grantTypes" xml:"grantTypes"`
+	GrantTypes []string `bson:"grant_types" json:"grant_types" xml:"grant_types"`
 
 	// ResponseTypes contains a list of the OAuth 2.0 response type strings
 	// that the client can use at the authorization endpoint.
 	//
 	// Pattern: id_token|code|token
-	ResponseTypes []string `bson:"responseTypes" json:"responseTypes" xml:"responseTypes"`
+	ResponseTypes []string `bson:"response_types" json:"response_types" xml:"response_types"`
 
 	// Scopes contains a list of values the client is entitled to use when
 	// requesting an access token (as described in Section 3.3 of OAuth 2.0
@@ -56,7 +56,7 @@ type Client struct {
 	// Disabled stops the client from being able to authenticate to the system.
 	Disabled bool `bson:"disabled" json:"disabled" xml:"disabled"`
 
-	//// Client Content
+	// // Client Content
 	// Name contains a human-readable string name of the client to be presented
 	// to the end-user during authorization.
 	Name string `bson:"name" json:"name" xml:"name"`
@@ -70,7 +70,7 @@ type Client struct {
 
 	// RedirectURIs contains a list of allowed redirect urls for the client, for
 	// example: http://mydomain/oauth/callback.
-	RedirectURIs []string `bson:"redirect_uris" json:"redirectUris" xml:"redirectUris"`
+	RedirectURIs []string `bson:"redirect_uris" json:"redirect_uris" xml:"redirect_uris"`
 
 	// Owner identifies the owner of the OAuth 2.0 Client.
 	Owner string `bson:"owner" json:"owner" xml:"owner"`
@@ -79,24 +79,24 @@ type Client struct {
 	// points to a human-readable privacy policy document that describes how the
 	// deployment organization collects, uses, retains, and discloses personal
 	// data.
-	PolicyURI string `bson:"policy_uri" json:"policyUri" xml:"policyUri"`
+	PolicyURI string `bson:"policy_uri" json:"policy_uri" xml:"policy_uri"`
 
 	// TermsOfServiceURI allows the application developer to provide a URI
 	// string that points to a human-readable terms of service document that
 	// describes and outlines the contractual relationship between the end-user
 	// and the client application that the end-user accepts when authorizing
 	// their use of the client.
-	TermsOfServiceURI string `bson:"terms_of_service_uri" json:"termsOfServiceUri" xml:"termsOfServiceUri"`
+	TermsOfServiceURI string `bson:"terms_of_service_uri" json:"terms_of_service_uri" xml:"terms_of_service_uri"`
 
 	// ClientURI allows the application developer to provide a URI string that
 	// points to a human-readable web page that provides information about the
 	// client application.
 	// If present, the server SHOULD display this URL to the end-user in a
 	// click-able fashion.
-	ClientURI string `bson:"client_uri" json:"clientUri" xml:"clientUri"`
+	ClientURI string `bson:"client_uri" json:"client_uri" xml:"client_uri"`
 
 	// LogoURI is an URL string that references a logo for the client.
-	LogoURI string `bson:"logo_uri" json:"logoUri" xml:"logoUri"`
+	LogoURI string `bson:"logo_uri" json:"logo_uri" xml:"logo_uri"`
 
 	// Contacts contains a list ways to contact the developers responsible for
 	// this OAuth 2.0 client, typically email addresses.
@@ -105,6 +105,9 @@ type Client struct {
 	// Published provides a switch to hide specific clients if not quite ready
 	// for the prime time, or if wanting to keep them hidden.
 	Published bool `bson:"published" json:"published" xml:"published"`
+
+	// Provider auth provider
+	Provider string `bson:"provider" json:"provider" xml:"provider"`
 }
 
 // GetID returns the client's Client ID.

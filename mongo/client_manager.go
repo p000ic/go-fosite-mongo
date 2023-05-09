@@ -128,12 +128,12 @@ func (c *ClientManager) Create(ctx context.Context, client storage.Client) (resu
 		client.CreateTime = time.Now().Unix()
 	}
 
-	// Hash incoming secret
-	hash, err := c.Hasher.Hash(ctx, []byte(client.Secret))
-	if err != nil {
-		return result, err
-	}
-	client.Secret = string(hash)
+	// // Hash incoming secret
+	// hash, err := c.Hasher.Hash(ctx, []byte(client.Secret))
+	// if err != nil {
+	// 	return result, err
+	// }
+	// client.Secret = string(hash)
 
 	// Create resource
 	collection := c.DB.Collection(storage.EntityClients)
@@ -260,11 +260,11 @@ func (c *ClientManager) Update(ctx context.Context, clientID string, updatedClie
 		// If the password/hash is blank or hash matches, set using old hash.
 		updatedClient.Secret = currentResource.Secret
 	} else {
-		newHash, err := c.Hasher.Hash(ctx, []byte(updatedClient.Secret))
-		if err != nil {
-			return result, err
-		}
-		updatedClient.Secret = string(newHash)
+		// newHash, err := c.Hasher.Hash(ctx, []byte(updatedClient.Secret))
+		// if err != nil {
+		// 	return result, err
+		// }
+		// updatedClient.Secret = string(newHash)
 	}
 
 	// Build Query
