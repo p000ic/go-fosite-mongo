@@ -99,20 +99,21 @@ func (s *Store) Close() {
 
 // Config defines the configuration parameters which are used by GetMongoSession.
 type Config struct {
-	Hostnames    []string    `default:"localhost" envconfig:"CONNECTIONS_MONGO_HOSTNAMES"`
-	Port         uint16      `default:"27017"     envconfig:"CONNECTIONS_MONGO_PORT"`
-	SSL          bool        `default:"false"     envconfig:"CONNECTIONS_MONGO_SSL"`
-	AuthDB       string      `default:"admin"     envconfig:"CONNECTIONS_MONGO_AUTHDB"`
-	Username     string      `default:""          envconfig:"CONNECTIONS_MONGO_USERNAME"`
-	Password     string      `default:""          envconfig:"CONNECTIONS_MONGO_PASSWORD"`
-	DatabaseName string      `default:""          envconfig:"CONNECTIONS_MONGO_NAME"`
-	Replset      string      `default:""          envconfig:"CONNECTIONS_MONGO_REPLSET"`
-	Timeout      uint        `default:"10"        envconfig:"CONNECTIONS_MONGO_TIMEOUT"`
-	PoolMinSize  uint64      `default:"0"         envconfig:"CONNECTIONS_MONGO_POOL_MIN_SIZE"`
-	PoolMaxSize  uint64      `default:"100"       envconfig:"CONNECTIONS_MONGO_POOL_MAX_SIZE"`
-	Compressors  []string    `default:""          envconfig:"CONNECTIONS_MONGO_COMPRESSORS"`
-	TokenTTL     uint32      `default:"0"         envconfig:"CONNECTIONS_MONGO_TOKEN_TTL"`
-	TLSConfig    *tls.Config `ignored:"true"`
+	Hostnames        []string    `default:"localhost" envconfig:"CONNECTIONS_MONGO_HOSTNAMES"`
+	Port             uint16      `default:"27017"     envconfig:"CONNECTIONS_MONGO_PORT"`
+	SSL              bool        `default:"false"     envconfig:"CONNECTIONS_MONGO_SSL"`
+	AuthDB           string      `default:"admin"     envconfig:"CONNECTIONS_MONGO_AUTHDB"`
+	Username         string      `default:""          envconfig:"CONNECTIONS_MONGO_USERNAME"`
+	Password         string      `default:""          envconfig:"CONNECTIONS_MONGO_PASSWORD"`
+	DatabaseName     string      `default:""          envconfig:"CONNECTIONS_MONGO_NAME"`
+	Replset          string      `default:""          envconfig:"CONNECTIONS_MONGO_REPLSET"`
+	Timeout          uint        `default:"10"        envconfig:"CONNECTIONS_MONGO_TIMEOUT"`
+	PoolMinSize      uint64      `default:"0"         envconfig:"CONNECTIONS_MONGO_POOL_MIN_SIZE"`
+	PoolMaxSize      uint64      `default:"100"       envconfig:"CONNECTIONS_MONGO_POOL_MAX_SIZE"`
+	Compressors      []string    `default:""          envconfig:"CONNECTIONS_MONGO_COMPRESSORS"`
+	TokenTTL         uint32      `default:"0"         envconfig:"CONNECTIONS_MONGO_TOKEN_TTL"`
+	CollectionPrefix string      `default:""          envconfig:"CONNECTIONS_MONGO_COLLECTION_PREFIX"`
+	TLSConfig        *tls.Config `ignored:"true"`
 }
 
 // DefaultConfig returns a configuration for a locally hosted, unauthenticated mongo
@@ -276,7 +277,7 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 }
 
 // configureDatabases calls the configuration handler for the provided
-// configurers.
+// configures.
 func configureDatabases(ctx context.Context, configurers ...storage.Configure) error {
 	for _, configurer := range configurers {
 		if err := configurer.Configure(ctx); err != nil {

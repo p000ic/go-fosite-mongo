@@ -16,7 +16,7 @@ import (
 // User provides the specific types for storing, editing, deleting and
 // retrieving a User record in mongo.
 type User struct {
-	//// User Meta
+	// User Meta
 	// ID is the uniquely assigned uuid that references the user
 	ID string `bson:"id" json:"id" xml:"id"`
 
@@ -56,7 +56,7 @@ type User struct {
 	// Disabled specifies whether the user has been disallowed from signing in
 	Disabled bool `bson:"disabled" json:"disabled" xml:"disabled"`
 
-	//// User Content
+	// User Content
 	// Username is used to authenticate a user
 	Username string `bson:"username" json:"username" xml:"username"`
 
