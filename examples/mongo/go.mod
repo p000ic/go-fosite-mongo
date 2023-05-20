@@ -1,6 +1,6 @@
 module github.com/p000ic/go-fosite-mongo/examples
 
-go 1.17
+go 1.18
 
 // use the local code, rather than go'getting the module
 replace github.com/p000ic/go-fosite-mongo => ../../../go-fosite-mongo
@@ -31,7 +31,6 @@ require (
 	github.com/mattn/goveralls v0.0.6 // indirect
 	github.com/mitchellh/mapstructure v1.3.2 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
-	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/ory/go-acc v0.2.6 // indirect
 	github.com/ory/go-convenience v0.1.0 // indirect
 	github.com/ory/viper v1.7.5 // indirect

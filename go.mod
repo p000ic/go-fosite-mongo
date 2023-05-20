@@ -1,6 +1,6 @@
 module github.com/p000ic/go-fosite-mongo
 
-go 1.17
+go 1.18
 
 require (
 	github.com/google/uuid v1.2.0

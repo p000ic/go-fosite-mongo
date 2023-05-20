@@ -126,18 +126,18 @@ func (d *DeniedJtiManager) DeleteBefore(ctx context.Context, expBefore int64) (e
 	return nil
 }
 
-//func (d *DeniedJtiManager) IsJWTUsed(ctx context.Context, jti string) (bool, error) {
+// func (d *DeniedJtiManager) IsJWTUsed(ctx context.Context, jti string) (bool, error) {
 //	err := d.ClientAssertionJWTValid(ctx, jti)
 //	if err != nil {
 //		return true, nil
 //	}
 //
 //	return false, nil
-//}
+// }
 //
-//func (d *DeniedJtiManager) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error {
+// func (d *DeniedJtiManager) MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error {
 //	return d.SetClientAssertionJWT(ctx, jti, exp)
-//}
+// }
 
 func (d *DeniedJtiManager) ClientAssertionJWTValid(_ context.Context, jti string) error {
 	d.blacklistedJTIsMutex.RLock()

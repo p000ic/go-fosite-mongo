@@ -40,15 +40,15 @@ type ClientStore interface {
 // ListClientsRequest enables listing and filtering client records.
 type ListClientsRequest struct {
 	// AllowedTenantAccess filters clients based on an Allowed Tenant Access.
-	AllowedTenantAccess string `json:"allowedTenantAccess" xml:"allowedTenantAccess"`
+	AllowedTenantAccess string `json:"allowed_tenant_access" xml:"allowed_tenant_access"`
 	// AllowedRegion filters clients based on an Allowed Region.
-	AllowedRegion string `json:"allowedRegion" xml:"allowedRegion"`
+	AllowedRegion string `json:"allowed_region" xml:"allowed_region"`
 	// RedirectURI filters clients based on redirectURI.
-	RedirectURI string `json:"redirectURI" xml:"redirectURI"`
+	RedirectURI string `json:"redirect_uri" xml:"redirect_uri"`
 	// GrantType filters clients based on GrantType.
-	GrantType string `json:"grantType" xml:"grantType"`
+	GrantType string `json:"grant_type" xml:"grant_type"`
 	// ResponseType filters clients based on ResponseType.
-	ResponseType string `json:"responseType" xml:"responseType"`
+	ResponseType string `json:"response_type" xml:"response_type"`
 	// ScopesIntersection filters clients that have at least the listed scopes.
 	// ScopesIntersection performs an AND operation.
 	// For example:
@@ -58,14 +58,14 @@ type ListClientsRequest struct {
 	//
 	// If ScopesUnion is provided, a union operation will be performed as it
 	// returns the wider selection.
-	ScopesIntersection []string `json:"scopesIntersection" xml:"scopesIntersection"`
+	ScopesIntersection []string `json:"scopes_intersection" xml:"scopes_intersection"`
 	// ScopesUnion filters users that have at least one of the listed scopes.
 	// ScopesUnion performs an OR operation.
 	// For example:
 	// - given ["cats"] the client must have "cats" in their scopes.
 	// - given ["cats, dogs"] the client must have "cats" OR "dogs in their
 	//   scopes.
-	ScopesUnion []string `json:"scopesUnion" xml:"scopesUnion"`
+	ScopesUnion []string `json:"scopes_union" xml:"scopes_union"`
 	// Contact filters clients based on Contact.
 	Contact string `json:"contact" xml:"contact"`
 	// Public filters clients based on Public status.

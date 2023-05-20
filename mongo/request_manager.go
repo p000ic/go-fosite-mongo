@@ -80,7 +80,7 @@ func (r *RequestManager) Configure(ctx context.Context) (err error) {
 		// Build Indices
 		indices := []mongo.IndexModel{
 			NewUniqueIndex(IdxSessionID, "id"),
-			NewIndex(IdxCompoundRequester, "clientId", "userId"),
+			NewIndex(IdxCompoundRequester, "client_id", "user_id"),
 		}
 
 		// Compute Signature Index
@@ -117,7 +117,7 @@ func (r *RequestManager) ConfigureExpiryWithTTL(ctx context.Context, ttl int) er
 	}
 
 	for _, entityName := range collections {
-		index := NewExpiryIndex(IdxExpiry+"RequestedAt", "requestedAt", ttl)
+		index := NewExpiryIndex(IdxExpiry+"RequestedAt", "requested_at", ttl)
 		collection := r.DB.Collection(entityName)
 		_, err := collection.Indexes().CreateOne(ctx, index)
 		if err != nil {
@@ -153,10 +153,10 @@ func (r *RequestManager) List(ctx context.Context, entityName string, filter sto
 	// Build Query
 	query := bson.M{}
 	if filter.ClientID != "" {
-		query["clientId"] = filter.ClientID
+		query["client_id"] = filter.ClientID
 	}
 	if filter.UserID != "" {
-		query["userId"] = filter.UserID
+		query["user_id"] = filter.UserID
 	}
 	if len(filter.ScopesIntersection) > 0 {
 		query["scopes"] = bson.M{"$all": filter.ScopesIntersection}

@@ -53,23 +53,23 @@ type RequestStore interface {
 // ListRequestsRequest enables filtering stored Request entities.
 type ListRequestsRequest struct {
 	// ClientID enables filtering requests based on Client ID
-	ClientID string `json:"clientId" xml:"clientId"`
+	ClientID string `json:"client_id" xml:"client_id"`
 	// UserID enables filtering requests based on User ID
-	UserID string `json:"userId" xml:"userId"`
+	UserID string `json:"user_id" xml:"user_id"`
 	// ScopesIntersection filters clients that have all of the listed scopes.
 	// ScopesIntersection performs an AND operation.
 	// If ScopesUnion is provided, a union operation will be performed as it
 	// returns the wider selection.
-	ScopesIntersection []string `json:"scopesIntersection" xml:"scopesIntersection"`
+	ScopesIntersection []string `json:"scopes_intersection" xml:"scopes_intersection"`
 	// ScopesUnion filters users that have at least one of of the listed scopes.
 	// ScopesUnion performs an OR operation.
-	ScopesUnion []string `json:"scopesUnion" xml:"scopesUnion"`
+	ScopesUnion []string `json:"scopes_union" xml:"scopes_union"`
 	// GrantedScopesIntersection enables filtering requests based on GrantedScopes
 	// GrantedScopesIntersection performs an AND operation.
 	// If GrantedScopesIntersection is provided, a union operation will be
 	// performed as it returns the wider selection.
-	GrantedScopesIntersection []string `json:"grantedScopesIntersection" xml:"grantedScopesIntersection"`
+	GrantedScopesIntersection []string `json:"granted_scopes_intersection" xml:"granted_scopes_intersection"`
 	// GrantedScopesUnion enables filtering requests based on GrantedScopes
 	// GrantedScopesUnion performs an OR operation.
-	GrantedScopesUnion []string `json:"grantedScopesUnion" xml:"grantedScopesUnion"`
+	GrantedScopesUnion []string `json:"granted_scopes_union" xml:"granted_scopes_union"`
 }

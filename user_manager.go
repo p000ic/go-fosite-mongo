@@ -27,25 +27,25 @@ type UserStorer interface {
 // ListUsersRequest enables filtering stored User entities.
 type ListUsersRequest struct {
 	// AllowedTenantAccess filters users based on an Allowed Tenant Access.
-	AllowedTenantAccess string `json:"allowedTenantAccess" xml:"allowedTenantAccess"`
+	AllowedTenantAccess string `json:"allowed_tenant_access" xml:"allowed_tenant_access"`
 	// AllowedPersonAccess filters users based on Allowed Person Access.
-	AllowedPersonAccess string `json:"allowedPersonAccess" xml:"allowedPersonAccess"`
+	AllowedPersonAccess string `json:"allowed_person_access" xml:"allowed_person_access"`
 	// AllowedPersonAccess filters users based on Person Access.
-	PersonID string `json:"personId" xml:"personId"`
+	PersonID string `json:"person_id" xml:"person_id"`
 	// Username filters users based on username.
 	Username string `json:"username" xml:"username"`
-	// ScopesUnion filters users that have at least one of of the listed scopes.
+	// ScopesUnion filters users that have at least one of the listed scopes.
 	// ScopesUnion performs an OR operation.
 	// If ScopesUnion is provided, a union operation will be performed as it
 	// returns the wider selection.
-	ScopesUnion []string `json:"scopesUnion" xml:"scopesUnion"`
-	// ScopesIntersection filters users that have all of the listed scopes.
+	ScopesUnion []string `json:"scopes_union" xml:"scopes_union"`
+	// ScopesIntersection filters users that have all the listed scopes.
 	// ScopesIntersection performs an AND operation.
-	ScopesIntersection []string `json:"scopesIntersection" xml:"scopesIntersection"`
+	ScopesIntersection []string `json:"scopes_intersection" xml:"scopes_intersection"`
 	// FirstName filters users based on their First Name.
-	FirstName string `json:"firstName" xml:"firstName"`
+	FirstName string `json:"first_name" xml:"first_name"`
 	// LastName filters users based on their Last Name.
-	LastName string `json:"lastName" xml:"lastName"`
+	LastName string `json:"last_name" xml:"last_name"`
 	// Disabled filters users to those with disabled accounts.
 	Disabled bool `json:"disabled" xml:"disabled"`
 }

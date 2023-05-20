@@ -68,13 +68,13 @@ func (u *UserManager) List(ctx context.Context, filter storage.ListUsersRequest)
 	// Build Query
 	query := bson.M{}
 	if filter.AllowedTenantAccess != "" {
-		query["allowedTenantAccess"] = filter.AllowedTenantAccess
+		query["allowed_tenant_access"] = filter.AllowedTenantAccess
 	}
 	if filter.AllowedPersonAccess != "" {
-		query["allowedPersonAccess"] = filter.AllowedPersonAccess
+		query["allowed_person_access"] = filter.AllowedPersonAccess
 	}
 	if filter.PersonID != "" {
-		query["personId"] = filter.PersonID
+		query["person_id"] = filter.PersonID
 	}
 	if filter.Username != "" {
 		query["username"] = filter.Username
@@ -86,10 +86,10 @@ func (u *UserManager) List(ctx context.Context, filter storage.ListUsersRequest)
 		query["scopes"] = bson.M{"$in": filter.ScopesUnion}
 	}
 	if filter.FirstName != "" {
-		query["firstName"] = filter.FirstName
+		query["first_name"] = filter.FirstName
 	}
 	if filter.LastName != "" {
-		query["lastName"] = filter.LastName
+		query["last_name"] = filter.LastName
 	}
 	if filter.Disabled {
 		query["disabled"] = filter.Disabled
