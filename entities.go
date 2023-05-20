@@ -1,35 +1,37 @@
 package storage
 
 const (
+	// CollectionPrefix provides the prefix to use for all collections created
+	CollectionPrefix = "oauth2_"
 	// EntityOpenIDSessions provides the name of the entity to use in order to
 	// create, read, update and delete OpenID Sessions.
-	EntityOpenIDSessions = "openid_connect_session"
+	EntityOpenIDSessions = CollectionPrefix + "openid_connect_session"
 
 	// EntityAccessTokens provides the name of the entity to use in order to
 	// create, read, update and delete Access Token sessions.
-	EntityAccessTokens = "access_token"
+	EntityAccessTokens = CollectionPrefix + "access_token"
 
 	// EntityRefreshTokens provides the name of the entity to use in order to
 	// create, read, update and delete Refresh Token sessions.
-	EntityRefreshTokens = "refresh_token"
+	EntityRefreshTokens = CollectionPrefix + "refresh_token"
 
 	// EntityAuthorizationCodes provides the name of the entity to use in order
 	// to create, read, update and delete Authorization Code sessions.
-	EntityAuthorizationCodes = "authorization_code"
+	EntityAuthorizationCodes = CollectionPrefix + "authorization_code"
 
 	// EntityPKCESessions provides the name of the entity to use in order to
 	// create, read, update and delete Proof Key for Code Exchange sessions.
-	EntityPKCESessions = "pkce_session"
+	EntityPKCESessions = CollectionPrefix + "pkce_session"
 
 	// EntityJtiDenylist provides the name of the entity to use in order to
 	// track and deny.
-	EntityJtiDenylist = "jti_deny_list"
+	EntityJtiDenylist = CollectionPrefix + "jti_deny_list"
 
 	// EntityClients provides the name of the entity to use in order to create,
 	// read, update and delete Clients.
-	EntityClients = "client"
+	EntityClients = CollectionPrefix + "client"
 
 	// EntityUsers provides the name of the entity to use in order to create,
 	// read, update and delete Users.
-	EntityUsers = "user"
+	EntityUsers = CollectionPrefix + "user"
 )
