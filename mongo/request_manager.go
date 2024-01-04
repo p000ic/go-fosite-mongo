@@ -4,11 +4,11 @@ import (
 	// Standard Library Imports
 	"context"
 	"encoding/json"
-	"gopkg.in/square/go-jose.v2"
 	"sync"
 	"time"
 
 	// External Imports
+	"github.com/go-jose/go-jose/v3"
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 	"go.mongodb.org/mongo-driver/bson"

@@ -3,8 +3,8 @@ package storage
 import (
 	// Standard Library Imports
 	"context"
-	"gopkg.in/square/go-jose.v2"
 	// External Imports
+	"github.com/go-jose/go-jose/v3"
 	"github.com/ory/fosite/handler/oauth2"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/handler/pkce"
