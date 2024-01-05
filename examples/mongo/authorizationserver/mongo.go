@@ -15,7 +15,11 @@ import (
 func NewExampleMongoStore() *mongo.Store {
 	ctx := context.Background()
 	cfg := mongo.DefaultConfig()
+	cfg.Hostnames = []string{"192.168.2.30"}
+	cfg.Port = 8044
 	cfg.DatabaseName = "oauth2"
+	cfg.Username = "mongoMegh"
+	cfg.Password = "MeghMongoDB2020"
 	store, err := mongo.New(cfg, nil)
 	if err != nil {
 		// Make sure to check in on your mongo instance and drop the database
@@ -37,7 +41,7 @@ func NewExampleMongoStore() *mongo.Store {
 	// the session for us, which we can defer to later.
 	ctx, closeSession, err := store.NewSession(ctx)
 	if err != nil {
-		// oh noes! creating a mongo session broke :/
+		// oh, noes! creating a mongo session broke :/
 		log.WithError(err).Fatal("error creating new session")
 	}
 	defer closeSession()
@@ -48,7 +52,7 @@ func NewExampleMongoStore() *mongo.Store {
 			ID:               "my-client",
 			Name:             "My Super Cool client for testing out Mongo storage",
 			CreateTime:       time.Now().Unix(),
-			Secret:           "foobar", // gets automagically hashed using fosite's hasher
+			Secret:           "foobar", // gets automagically hashed using fosite hasher
 			AllowedAudiences: []string{"https://my-client.my-application.com"},
 			RedirectURIs:     []string{"http://localhost:3846/callback"},
 			ResponseTypes:    []string{"id_token", "code", "token", "id_token token"},
@@ -59,7 +63,7 @@ func NewExampleMongoStore() *mongo.Store {
 			ID:            "encoded:client",
 			Name:          "Sup3r secret 3nc0d3d Client",
 			CreateTime:    time.Now().Unix(),
-			Secret:        "encoded&password", // gets automagically hashed using fosite's hasher
+			Secret:        "encoded&password", // gets automagically hashed using fosite hasher
 			RedirectURIs:  []string{"http://localhost:3846/callback"},
 			ResponseTypes: []string{"id_token", "code", "token"},
 			GrantTypes:    []string{"implicit", "refresh_token", "authorization_code", "password", "client_credentials"},

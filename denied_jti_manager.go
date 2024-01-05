@@ -21,8 +21,8 @@ type DeniedJTIStore interface {
 	// DeleteBefore removes all denied JTIs before the given unix time.
 	DeleteBefore(ctx context.Context, expBefore int64) error
 
-	//IsJWTUsed(ctx context.Context, jti string) (bool, error)
-	//MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error
-	//ClientAssertionJWTValid(_ context.Context, jti string) error
-	//SetClientAssertionJWT(_ context.Context, jti string, exp time.Time) error
+	// IsJWTUsed(ctx context.Context, jti string) (bool, error)
+	// MarkJWTUsedForTime(ctx context.Context, jti string, exp time.Time) error
+	// ClientAssertionJWTValid(_ context.Context, jti string) error
+	// SetClientAssertionJWT(_ context.Context, jti string, exp time.Time) error
 }

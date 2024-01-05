@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ory/fosite"
 	"github.com/ory/fosite/compose"
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/token/jwt"
@@ -22,14 +23,14 @@ func RegisterHandlers() {
 }
 
 // fosite requires four parameters for the server to get up and running:
-// 1. config - for any enforcement you may desire, you can do this using `compose.Config`. You like PKCE, enforce it!
-// 2. store - no auth service is generally useful unless it can remember clients and users.
-//    fosite is incredibly composable, and the store parameter enables you to build and BYODb (Bring Your Own Database)
-// 3. secret - required for code, access and refresh token generation.
-// 4. privateKey - required for id/jwt token generation.
+//  1. config - for any enforcement you may desire, you can do this using `compose.Config`. You like PKCE, enforce it!
+//  2. store - no auth service is generally useful unless it can remember clients and users.
+//     fosite is incredibly composable, and the store parameter enables you to build and BYODb (Bring Your Own Database)
+//  3. secret - required for code, access and refresh token generation.
+//  4. privateKey - required for id/jwt token generation.
 var (
 	// Check the api documentation of `compose.Config` for further configuration options.
-	config = &compose.Config{
+	config = &fosite.Config{
 		AccessTokenLifespan: time.Minute * 30,
 		// ...
 	}
@@ -75,7 +76,7 @@ var (
 )
 
 // Build a fosite instance with all OAuth2 and OpenID Connect handlers enabled, plugging in our configurations as specified above.
-var oauth2 = compose.ComposeAllEnabled(config, store, secret, privateKey)
+var oauth2 = compose.ComposeAllEnabled(config, store, privateKey)
 
 // A session is passed from the `/auth` to the `/token` endpoint. You probably want to store data like: "Who made the request",
 // "What organization does that person belong to" and so on.
@@ -86,7 +87,7 @@ var oauth2 = compose.ComposeAllEnabled(config, store, secret, privateKey)
 // setting up multiple strategies it is a bit longer.
 // Usually, you could do:
 //
-//  session = new(fosite.DefaultSession)
+//	session = new(fosite.DefaultSession)
 func newSession(user string) *openid.DefaultSession {
 	return &openid.DefaultSession{
 		Claims: &jwt.IDTokenClaims{

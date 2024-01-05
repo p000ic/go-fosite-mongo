@@ -54,14 +54,16 @@ type DB struct {
 // NewSession boilerplate becomes:
 // ```
 // ctx := context.Background()
-// if store.DB.HasSessions {
-//     var closeSession func()
-//     ctx, closeSession, err = store.NewSession(nil)
-//     if err != nil {
-//         panic(err)
-//     }
-//     defer closeSession()
-// }
+//
+//	if store.DB.HasSessions {
+//	    var closeSession func()
+//	    ctx, closeSession, err = store.NewSession(nil)
+//	    if err != nil {
+//	        panic(err)
+//	    }
+//	    defer closeSession()
+//	}
+//
 // ```
 func (s *Store) NewSession(ctx context.Context) (context.Context, func(), error) {
 	return newSession(ctx, s.DB)
@@ -218,20 +220,18 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 
 	if hashee == nil {
 		// Initialize default fosite Hasher.
-		hashee = &fosite.BCrypt{
-			WorkFactor: 10,
-		}
+		hashee = &fosite.BCrypt{Config: &fosite.Config{HashCost: 24}}
 	}
 
 	// Build up the mongo endpoints
-	mongoDeniedJtis := &DeniedJtiManager{
+	mongoDeniedJTIs := &DeniedJtiManager{
 		DB: mongoDB,
 	}
 	mongoClients := &ClientManager{
 		DB:     mongoDB,
 		Hasher: hashee,
 
-		DeniedJTIs: mongoDeniedJtis,
+		DeniedJTIs: mongoDeniedJTIs,
 	}
 	mongoUsers := &UserManager{
 		DB:     mongoDB,
@@ -253,7 +253,7 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 	defer closeSession()
 
 	// Configure DB collections, indices, TTLs e.t.c.
-	if err = configureDatabases(ctx, mongoClients, mongoDeniedJtis, mongoUsers, mongoRequests); err != nil {
+	if err = configureDatabases(ctx, mongoClients, mongoDeniedJTIs, mongoUsers, mongoRequests); err != nil {
 		return nil, err
 	}
 	if cfg.TokenTTL > 0 {
@@ -268,7 +268,7 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 		Hasher:  hashee,
 		Store: storage.Store{
 			ClientManager:    mongoClients,
-			DeniedJTIManager: mongoDeniedJtis,
+			DeniedJTIManager: mongoDeniedJTIs,
 			RequestManager:   mongoRequests,
 			UserManager:      mongoUsers,
 		},
@@ -288,11 +288,11 @@ func configureDatabases(ctx context.Context, configurers ...storage.Configure) e
 	return nil
 }
 
-// configureExpiry calls the configuration handler for the provided expirers.
+// configureExpiry calls the configuration handler for the provided expires.
 // ttl should be a positive integer.
-func configureExpiry(ctx context.Context, ttl int, expirers ...storage.Expire) error {
-	for _, expirer := range expirers {
-		if err := expirer.ConfigureExpiryWithTTL(ctx, ttl); err != nil {
+func configureExpiry(ctx context.Context, ttl int, expires ...storage.Expire) error {
+	for _, expire := range expires {
+		if err := expire.ConfigureExpiryWithTTL(ctx, ttl); err != nil {
 			return err
 		}
 	}
@@ -310,8 +310,8 @@ func NewDefaultStore() (*Store, error) {
 // NewIndex generates a new index model, ready to be saved in mongo.
 //
 // Note:
-// - This function assumes you are entering valid index keys and relies on
-//   mongo rejecting index operations if a bad index is created.
+//   - This function assumes you are entering valid index keys and relies on
+//     mongo rejecting index operations if a bad index is created.
 func NewIndex(name string, keys ...string) (model mongo.IndexModel) {
 	return mongo.IndexModel{
 		Keys:    generateIndexKeys(keys...),
