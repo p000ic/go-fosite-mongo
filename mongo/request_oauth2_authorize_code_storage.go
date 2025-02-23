@@ -3,6 +3,7 @@ package mongo
 import (
 	// Standard Library Imports
 	"context"
+	"errors"
 	"time"
 
 	// External Imports
@@ -17,7 +18,7 @@ func (r *RequestManager) CreateAuthorizeCodeSession(ctx context.Context, code st
 	// Store session request
 	_, err = r.Create(ctx, storage.EntityAuthorizationCodes, toMongo(code, request))
 	if err != nil {
-		if err == storage.ErrResourceExists {
+		if errors.Is(err, storage.ErrResourceExists) {
 			return err
 		}
 		return err

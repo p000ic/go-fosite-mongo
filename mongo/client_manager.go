@@ -8,9 +8,9 @@ import (
 	// External Imports
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
 
 	// Internal Imports
 	"github.com/p000ic/go-fosite-mongo"

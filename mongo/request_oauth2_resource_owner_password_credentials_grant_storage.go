@@ -3,6 +3,7 @@ package mongo
 import (
 	// Standard Library Imports
 	"context"
+	"errors"
 
 	// External Imports
 	"github.com/ory/fosite"
@@ -17,7 +18,7 @@ import (
 func (r *RequestManager) Authenticate(ctx context.Context, username string, secret string) (err error) {
 	_, err = r.Users.Authenticate(ctx, username, secret)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return err
 		}
 		return err

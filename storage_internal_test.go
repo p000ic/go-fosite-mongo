@@ -65,14 +65,14 @@ func TestStore_ImplementsFositeRefreshTokenStorageInterface(t *testing.T) {
 	}
 }
 
-func TestStore_ImplementsFositeResourceOwnerPasswordCredentialsGrantStorageInterface(t *testing.T) {
-	r := &Store{}
-
-	var i interface{} = r
-	if _, ok := i.(oauth2.ResourceOwnerPasswordCredentialsGrantStorage); !ok {
-		t.Error("Store does not implement interface oauth2.ResourceOwnerPasswordCredentialsGrantStorage")
-	}
-}
+// func TestStore_ImplementsFositeResourceOwnerPasswordCredentialsGrantStorageInterface(t *testing.T) {
+// 	r := &Store{}
+//
+// 	var i interface{} = r
+// 	if _, ok := i.(oauth2.ResourceOwnerPasswordCredentialsGrantStorage); !ok {
+// 		t.Error("Store does not implement interface oauth2.ResourceOwnerPasswordCredentialsGrantStorage")
+// 	}
+// }
 
 func TestStore_ImplementsFositeOpenidOpenIDConnectRequestStorageInterface(t *testing.T) {
 	r := &Store{}

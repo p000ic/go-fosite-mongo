@@ -3,6 +3,8 @@ package mongo
 import (
 	// Standard Library Imports
 	"context"
+	"errors"
+
 	// External Imports
 	"github.com/ory/fosite"
 
@@ -15,7 +17,7 @@ func (r *RequestManager) CreateAccessTokenSession(ctx context.Context, signature
 	// Store session request
 	_, err = r.Create(ctx, storage.EntityAccessTokens, toMongo(signature, request))
 	if err != nil {
-		if err == storage.ErrResourceExists {
+		if errors.Is(err, storage.ErrResourceExists) {
 			return err
 		}
 		return err

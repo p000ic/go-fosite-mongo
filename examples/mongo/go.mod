@@ -6,7 +6,7 @@ go 1.21
 replace github.com/p000ic/go-fosite-mongo => ../../../go-fosite-mongo
 
 require (
-	github.com/ory/fosite v0.45.0
+	github.com/ory/fosite v0.49.0
 	github.com/p000ic/go-fosite-mongo v0.2.6
 	github.com/sirupsen/logrus v1.9.3
 	golang.org/x/net v0.19.0

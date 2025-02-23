@@ -88,13 +88,13 @@ func (r *Request) ToRequest(ctx context.Context, session fosite.Session, cm Clie
 	}
 
 	req := &fosite.Request{
+		Client:            client,
+		Session:           session,
 		ID:                r.ID,
 		RequestedAt:       r.RequestedAt,
-		Client:            client,
 		RequestedScope:    r.RequestedScope,
 		GrantedScope:      r.GrantedScope,
 		Form:              r.Form,
-		Session:           session,
 		RequestedAudience: r.RequestedAudience,
 		GrantedAudience:   r.GrantedAudience,
 	}

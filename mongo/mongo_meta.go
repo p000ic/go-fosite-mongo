@@ -5,7 +5,7 @@ import (
 	"context"
 
 	// External Imports
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo"
 )
 
 const (
@@ -38,13 +38,13 @@ const (
 
 // SessionToContext provides a way to push a mongo datastore session into the
 // current context, which can then be passed on to other routes or functions.
-func SessionToContext(ctx context.Context, session mongo.Session) context.Context {
+func SessionToContext(ctx context.Context, session *mongo.Session) context.Context {
 	return mongo.NewSessionContext(ctx, session)
 }
 
 // ContextToSession provides a way to obtain a mongo session, if contained
 // within the presented context.
-func ContextToSession(ctx context.Context) (sess mongo.Session, ok bool) {
+func ContextToSession(ctx context.Context) (sess *mongo.Session, ok bool) {
 	if sess := mongo.SessionFromContext(ctx); sess != nil {
 		return sess, true
 	}

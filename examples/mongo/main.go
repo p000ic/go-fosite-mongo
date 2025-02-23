@@ -9,12 +9,13 @@ import (
 	"os/signal"
 	"sync"
 
-	"github.com/p000ic/go-fosite-mongo/examples/authorizationserver"
-	"github.com/p000ic/go-fosite-mongo/examples/oauth2client"
-	"github.com/p000ic/go-fosite-mongo/examples/resourceserver"
 	log "github.com/sirupsen/logrus"
 	goauth "golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
+
+	"github.com/p000ic/go-fosite-mongo/examples/authorizationserver"
+	"github.com/p000ic/go-fosite-mongo/examples/oauth2client"
+	"github.com/p000ic/go-fosite-mongo/examples/resourceserver"
 )
 
 // A valid oauth2 client (check the store) that additionally requests an OpenID Connect id token

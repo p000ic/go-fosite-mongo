@@ -10,10 +10,10 @@ import (
 
 	// External Imports
 	"github.com/ory/fosite"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/mongo"
+	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
 
 	// Local Imports
 	"github.com/p000ic/go-fosite-mongo"
@@ -85,7 +85,7 @@ func newSession(ctx context.Context, db *DB) (context.Context, func(), error) {
 }
 
 // closeSession encapsulates the logic required to close a mongo session.
-func closeSession(ctx context.Context, session mongo.Session) func() {
+func closeSession(ctx context.Context, session *mongo.Session) func() {
 	return func() {
 		session.EndSession(ctx)
 	}
@@ -192,7 +192,7 @@ func ConnectionInfo(cfg *Config) *options.ClientOptions {
 func Connect(cfg *Config) (*mongo.Database, error) {
 	ctx := context.Background()
 	dialInfo := ConnectionInfo(cfg)
-	client, err := mongo.Connect(ctx, dialInfo)
+	client, err := mongo.Connect(dialInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -313,29 +313,35 @@ func NewDefaultStore() (*Store, error) {
 //   - This function assumes you are entering valid index keys and relies on
 //     mongo rejecting index operations if a bad index is created.
 func NewIndex(name string, keys ...string) (model mongo.IndexModel) {
-	return mongo.IndexModel{
-		Keys:    generateIndexKeys(keys...),
-		Options: generateIndexOptions(name, false),
+	idxModel := mongo.IndexModel{
+		Keys: generateIndexKeys(keys...),
 	}
+	idxModel.Options.SetName(name)
+	idxModel.Options.SetUnique(false)
+	return idxModel
 }
 
 // NewUniqueIndex generates a new unique index model, ready to be saved in
 // mongo.
 func NewUniqueIndex(name string, keys ...string) mongo.IndexModel {
-	return mongo.IndexModel{
-		Keys:    generateIndexKeys(keys...),
-		Options: generateIndexOptions(name, true),
+	idxModel := mongo.IndexModel{
+		Keys: generateIndexKeys(keys...),
 	}
+	idxModel.Options.SetName(name)
+	idxModel.Options.SetUnique(true)
+	return idxModel
 }
 
 // NewExpiryIndex generates a new index with a time to live value before the
 // record expires in mongodb.
 func NewExpiryIndex(name string, key string, expireAfter int) (model mongo.IndexModel) {
-	return mongo.IndexModel{
+	idxModel := mongo.IndexModel{
 		Keys: bson.D{{Key: key, Value: int32(1)}},
-		Options: generateIndexOptions(name, false).
-			SetExpireAfterSeconds(int32(expireAfter)),
 	}
+	idxModel.Options.SetName(name)
+	idxModel.Options.SetUnique(false)
+	idxModel.Options.SetExpireAfterSeconds(int32(expireAfter))
+	return idxModel
 }
 
 // generateIndexKeys given a number of stringy keys will return a bson
@@ -365,17 +371,4 @@ func generateIndexKeys(keys ...string) (indexKeys bson.D) {
 	}
 
 	return
-}
-
-// generateIndexOptions generates new index options.
-func generateIndexOptions(name string, unique bool) *options.IndexOptions {
-	opts := options.Index().
-		SetSparse(true).
-		SetUnique(unique)
-
-	if name != "" {
-		opts.SetName(name)
-	}
-
-	return opts
 }
