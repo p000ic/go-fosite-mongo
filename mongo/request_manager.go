@@ -4,6 +4,7 @@ import (
 	// Standard Library Imports
 	"context"
 	"encoding/json"
+	"errors"
 	"sync"
 	"time"
 
@@ -139,7 +140,7 @@ func (r *RequestManager) getConcrete(ctx context.Context, entityName string, req
 	collection := r.DB.Collection(entityName)
 	err = collection.FindOne(ctx, query).Decode(&request)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 		return result, err
@@ -227,7 +228,7 @@ func (r *RequestManager) GetBySignature(ctx context.Context, entityName string, 
 	collection := r.DB.Collection(entityName)
 	err = collection.FindOne(ctx, query).Decode(&request)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 		return result, err
@@ -368,7 +369,7 @@ func (r *RequestManager) GetPublicKeyScopes(ctx context.Context, issuer string, 
 // revokeToken deletes a token based on the provided request id.
 func (r *RequestManager) revokeToken(ctx context.Context, entityName string, requestID string) (err error) {
 	err = r.Delete(ctx, entityName, requestID)
-	if err != nil && err != fosite.ErrNotFound {
+	if err != nil && !errors.Is(err, fosite.ErrNotFound) {
 		// Note: If the token is not found, we can declare it revoked.
 		return err
 	}

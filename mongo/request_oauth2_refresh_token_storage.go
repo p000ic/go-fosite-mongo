@@ -12,7 +12,7 @@ import (
 )
 
 // CreateRefreshTokenSession implements fosite.RefreshTokenStorage.
-func (r *RequestManager) CreateRefreshTokenSession(ctx context.Context, signature string, request fosite.Requester) (err error) {
+func (r *RequestManager) CreateRefreshTokenSession(ctx context.Context, signature string, assignsignature string, request fosite.Requester) (err error) {
 	// Store session request
 	_, err = r.Create(ctx, storage.EntityRefreshTokens, toMongo(signature, request))
 	if err != nil {
