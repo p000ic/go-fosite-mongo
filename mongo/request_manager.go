@@ -69,40 +69,40 @@ func (r *RequestManager) Configure(ctx context.Context) (err error) {
 	// In terms of the underlying entity for session data, the model is the
 	// same across the following entities. I have decided to logically break
 	// them into separate collections rather than have a 'SessionType'.
-	collections := []string{
-		storage.EntityAccessTokens,
-		storage.EntityAuthorizationCodes,
-		storage.EntityOpenIDSessions,
-		storage.EntityPKCESessions,
-		storage.EntityRefreshTokens,
-	}
+	// collections := []string{
+	// 	storage.EntityAccessTokens,
+	// 	storage.EntityAuthorizationCodes,
+	// 	storage.EntityOpenIDSessions,
+	// 	storage.EntityPKCESessions,
+	// 	storage.EntityRefreshTokens,
+	// }
 
-	for _, entityName := range collections {
-		// Build Indices
-		indices := []mongo.IndexModel{
-			NewUniqueIndex(IdxSessionID, "id"),
-			NewIndex(IdxCompoundRequester, "client_id", "user_id"),
-		}
-
-		// Compute Signature Index
-		signatureIndex := NewUniqueIndex(IdxSignatureID, "signature")
-		if entityName == storage.EntityAccessTokens {
-			// Access Tokens generate a very large signature, which leads to
-			// the index size blowing out. Instead, we can make use of Mongo's
-			// hashed indices to massively reduce the size of the index.
-			//
-			// Note:
-			// - Hashed Indices don't currently support a unique constraint.
-			signatureIndex = NewIndex(IdxSignatureID+"Hashed", "#signature")
-		}
-		indices = append(indices, signatureIndex)
-
-		collection := r.DB.Collection(entityName)
-		_, err = collection.Indexes().CreateMany(ctx, indices)
-		if err != nil {
-			return err
-		}
-	}
+	// for _, entityName := range collections {
+	// 	// Build Indices
+	// 	indices := []mongo.IndexModel{
+	// 		NewUniqueIndex(IdxSessionID, "id"),
+	// 		NewIndex(IdxCompoundRequester, "client_id", "user_id"),
+	// 	}
+	//
+	// 	// Compute Signature Index
+	// 	signatureIndex := NewUniqueIndex(IdxSignatureID, "signature")
+	// 	if entityName == storage.EntityAccessTokens {
+	// 		// Access Tokens generate a very large signature, which leads to
+	// 		// the index size blowing out. Instead, we can make use of Mongo's
+	// 		// hashed indices to massively reduce the size of the index.
+	// 		//
+	// 		// Note:
+	// 		// - Hashed Indices don't currently support a unique constraint.
+	// 		signatureIndex = NewIndex(IdxSignatureID+"Hashed", "#signature")
+	// 	}
+	// 	indices = append(indices, signatureIndex)
+	//
+	// 	collection := r.DB.Collection(entityName)
+	// 	_, err = collection.Indexes().CreateMany(ctx, indices)
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
@@ -374,6 +374,11 @@ func (r *RequestManager) revokeToken(ctx context.Context, entityName string, req
 		return err
 	}
 
+	return nil
+}
+
+// RotateRefreshToken rotates the refresh token.
+func (r *RequestManager) RotateRefreshToken(ctx context.Context, entityName string, requestID string) error {
 	return nil
 }
 

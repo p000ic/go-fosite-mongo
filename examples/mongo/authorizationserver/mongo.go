@@ -4,9 +4,10 @@ import (
 	"context"
 	"time"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/p000ic/go-fosite-mongo"
 	"github.com/p000ic/go-fosite-mongo/mongo"
-	log "github.com/sirupsen/logrus"
 )
 
 // NewExampleMongoStore -
@@ -15,12 +16,12 @@ import (
 func NewExampleMongoStore() *mongo.Store {
 	ctx := context.Background()
 	cfg := mongo.DefaultConfig()
-	cfg.Hostnames = []string{"192.168.2.30"}
-	cfg.Port = 8044
+	cfg.Hostnames = []string{"192.168.2.69"}
+	cfg.Port = 27017
 	cfg.DatabaseName = "oauth2"
-	cfg.Username = "mongoMegh"
-	cfg.Password = "MeghMongoDB2020"
-	store, err := mongo.New(cfg, nil)
+	cfg.Username = "test"
+	cfg.Password = "test"
+	mongoStore, err := mongo.New(cfg, nil)
 	if err != nil {
 		// Make sure to check in on your mongo instance and drop the database
 		// to ensure you can start this up again and not have conflicting data
@@ -39,7 +40,7 @@ func NewExampleMongoStore() *mongo.Store {
 	// pushing the session into the context so all db handlers can use the same
 	// connection/session and provides a function to be able to cleanly close
 	// the session for us, which we can defer to later.
-	ctx, closeSession, err := store.NewSession(ctx)
+	ctx, closeSession, err := mongoStore.NewSession(ctx)
 	if err != nil {
 		// oh, noes! creating a mongo session broke :/
 		log.WithError(err).Fatal("error creating new session")
@@ -70,7 +71,7 @@ func NewExampleMongoStore() *mongo.Store {
 			Scopes:        []string{"fosite", "openid", "photos", "offline"},
 		},
 	}
-	createClients(ctx, store, clients)
+	createClients(ctx, mongoStore, clients)
 
 	// Build and inject our test users
 	users := []storage.User{
@@ -79,9 +80,9 @@ func NewExampleMongoStore() *mongo.Store {
 			Password: "secret",
 		},
 	}
-	createUsers(ctx, store, users)
+	createUsers(ctx, mongoStore, users)
 
-	return store
+	return mongoStore
 }
 
 // TeardownMongo drops the database.

@@ -207,7 +207,7 @@ func Connect(cfg *Config) (*mongo.Database, error) {
 }
 
 // New allows for custom mongo configuration and custom hashers.
-func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
+func New(cfg *Config, hash fosite.Hasher) (*Store, error) {
 	database, err := Connect(cfg)
 	if err != nil {
 		return nil, err
@@ -218,9 +218,9 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 		Database: database,
 	}
 
-	if hashee == nil {
+	if hash == nil {
 		// Initialize default fosite Hasher.
-		hashee = &fosite.BCrypt{Config: &fosite.Config{HashCost: 24}}
+		hash = &fosite.BCrypt{Config: &fosite.Config{HashCost: 24}}
 	}
 
 	// Build up the mongo endpoints
@@ -229,13 +229,13 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 	}
 	mongoClients := &ClientManager{
 		DB:     mongoDB,
-		Hasher: hashee,
+		Hasher: hash,
 
 		DeniedJTIs: mongoDeniedJTIs,
 	}
 	mongoUsers := &UserManager{
 		DB:     mongoDB,
-		Hasher: hashee,
+		Hasher: hash,
 	}
 	mongoRequests := &RequestManager{
 		DB: mongoDB,
@@ -265,7 +265,7 @@ func New(cfg *Config, hashee fosite.Hasher) (*Store, error) {
 	store := &Store{
 		DB:      mongoDB,
 		timeout: time.Second * time.Duration(cfg.Timeout),
-		Hasher:  hashee,
+		Hasher:  hash,
 		Store: storage.Store{
 			ClientManager:    mongoClients,
 			DeniedJTIManager: mongoDeniedJTIs,

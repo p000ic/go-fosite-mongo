@@ -3,6 +3,7 @@ package mongo
 import (
 	// Standard Library Imports
 	"context"
+	"errors"
 	"time"
 
 	// External Imports
@@ -30,17 +31,15 @@ type UserManager struct {
 
 // Configure implements storage.Configure.
 func (u *UserManager) Configure(ctx context.Context) (err error) {
-	indices := []mongo.IndexModel{
-		NewUniqueIndex(IdxUserID, "id"),
-		NewUniqueIndex(IdxUsername, "username"),
-	}
-
-	collection := u.DB.Collection(storage.EntityUsers)
-	_, err = collection.Indexes().CreateMany(ctx, indices)
-	if err != nil {
-		return err
-	}
-
+	// indices := []mongo.IndexModel{
+	// 	NewUniqueIndex(IdxUserID, "id"),
+	// 	NewUniqueIndex(IdxUsername, "username"),
+	// }
+	// collection := u.DB.Collection(storage.EntityUsers)
+	// _, err = collection.Indexes().CreateMany(ctx, indices)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -54,7 +53,7 @@ func (u *UserManager) getConcrete(ctx context.Context, userID string) (result st
 	collection := u.DB.Collection(storage.EntityUsers)
 	err = collection.FindOne(ctx, query).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 		return result, err

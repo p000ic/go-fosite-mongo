@@ -3,6 +3,7 @@ package mongo
 import (
 	// Standard Library imports
 	"context"
+	"errors"
 	"time"
 
 	// External Imports
@@ -34,16 +35,14 @@ type ClientManager struct {
 // Configure sets up the Mongo collection for OAuth 2.0 client resources.
 func (c *ClientManager) Configure(ctx context.Context) (err error) {
 	// Build Index
-	indices := []mongo.IndexModel{
-		NewUniqueIndex(IdxClientID, "id"),
-	}
-
-	collection := c.DB.Collection(storage.EntityClients)
-	_, err = collection.Indexes().CreateMany(ctx, indices)
-	if err != nil {
-		return err
-	}
-
+	// indices := []mongo.IndexModel{
+	// 	NewUniqueIndex(IdxClientID, "id"),
+	// }
+	// collection := c.DB.Collection(storage.EntityClients)
+	// _, err = collection.Indexes().CreateMany(ctx, indices)
+	// if err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -57,7 +56,7 @@ func (c *ClientManager) getConcrete(ctx context.Context, clientID string) (resul
 	collection := c.DB.Collection(storage.EntityClients)
 	err = collection.FindOne(ctx, query).Decode(&storageClient)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 		return result, err
@@ -245,7 +244,7 @@ func (c *ClientManager) Update(ctx context.Context, clientID string, updatedClie
 
 	currentResource, err := c.getConcrete(ctx, clientID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 		return result, err
@@ -350,7 +349,7 @@ func (c *ClientManager) Delete(ctx context.Context, clientID string) (err error)
 func (c *ClientManager) Authenticate(ctx context.Context, clientID string, secret string) (result storage.Client, err error) {
 	client, err := c.getConcrete(ctx, clientID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 		return result, err
@@ -447,7 +446,7 @@ func (c *ClientManager) GrantScopes(ctx context.Context, clientID string, scopes
 	}
 	client, err := c.getConcrete(ctx, clientID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 		return result, err
@@ -474,7 +473,7 @@ func (c *ClientManager) RemoveScopes(ctx context.Context, clientID string, scope
 
 	client, err := c.getConcrete(ctx, clientID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 		return result, err

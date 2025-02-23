@@ -40,7 +40,7 @@ var appClientConf = clientcredentials.Config{
 
 func main() {
 	// configure HTTP server.
-	port := "3846"
+	port := "8080"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
