@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"sync"
 
@@ -40,11 +41,12 @@ var appClientConf = clientcredentials.Config{
 
 func main() {
 	// configure HTTP server.
-	port := "8080"
+	port := "8000"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
 	srv := &http.Server{Addr: ":" + port}
+	fmt.Printf("server starting at port %s\n", port)
 	// ### oauth2 server ###
 	authorizationserver.RegisterHandlers() // the authorization server (fosite)
 	// ### oauth2 client ###
@@ -56,7 +58,7 @@ func main() {
 	// ### protected resource ###
 	http.HandleFunc("/protected", resourceserver.ProtectedEndpoint(appClientConf))
 	fmt.Println("Please open your web browser at http://localhost:" + port)
-	// _ = exec.Command("open", "http://localhost:"+port).Run()
+	_ = exec.Command("open", "http://localhost:"+port).Run()
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {

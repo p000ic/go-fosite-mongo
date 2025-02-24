@@ -31,7 +31,7 @@ func RegisterHandlers() {
 var (
 	// Check the api documentation of `compose.Config` for further configuration options.
 	config = &fosite.Config{
-		AccessTokenLifespan: time.Minute * 30,
+		AccessTokenLifespan: time.Minute * 5,
 		// ...
 	}
 
