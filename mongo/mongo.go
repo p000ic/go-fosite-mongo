@@ -56,12 +56,12 @@ type DB struct {
 // ctx := context.Background()
 //
 //	if store.DB.HasSessions {
-//	    var closeSession func()
-//	    ctx, closeSession, err = store.NewSession(nil)
+//	    var sess func()
+//	    ctx, sess, err = store.NewSession(nil)
 //	    if err != nil {
 //	        panic(err)
 //	    }
-//	    defer closeSession()
+//	    defer sess()
 //	}
 //
 // ```
@@ -245,12 +245,12 @@ func New(cfg *Config, hash fosite.Hasher) (*Store, error) {
 	}
 
 	// attempt to perform index updates in a session.
-	var closeSession func()
-	ctx, closeSession, err := newSession(context.Background(), mongoDB)
+	var sess func()
+	ctx, sess, err := newSession(context.Background(), mongoDB)
 	if err != nil {
 		return nil, err
 	}
-	defer closeSession()
+	defer sess()
 
 	// Configure DB collections, indices, TTLs e.t.c.
 	if err = configureDatabases(ctx, mongoClients, mongoDeniedJTIs, mongoUsers, mongoRequests); err != nil {

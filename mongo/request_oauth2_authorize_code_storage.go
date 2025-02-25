@@ -33,12 +33,12 @@ func (r *RequestManager) GetAuthorizeCodeSession(ctx context.Context, code strin
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, r.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, r.DB)
 		if err != nil {
 			return nil, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	// Get the stored request
@@ -77,12 +77,12 @@ func (r *RequestManager) InvalidateAuthorizeCodeSession(ctx context.Context, cod
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, r.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, r.DB)
 		if err != nil {
 			return err
 		}
-		defer closeSession()
+		defer sess()
 	}
 	// Get the stored request
 	req, err := r.GetBySignature(ctx, storage.EntityAuthorizationCodes, code)

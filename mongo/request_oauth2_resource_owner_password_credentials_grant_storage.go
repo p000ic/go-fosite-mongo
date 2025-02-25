@@ -15,14 +15,14 @@ import (
 
 // Authenticate confirms whether the specified password matches the stored
 // hashed password within a User resource, found by username.
-func (r *RequestManager) Authenticate(ctx context.Context, username string, secret string) (err error) {
-	_, err = r.Users.Authenticate(ctx, username, secret)
+func (r *RequestManager) Authenticate(ctx context.Context, username string, secret string) (string, error) {
+	user, err := r.Users.Authenticate(ctx, username, secret)
 	if err != nil {
 		if errors.Is(err, fosite.ErrNotFound) {
-			return err
+			return "", err
 		}
-		return err
+		return "", err
 	}
 
-	return nil
+	return user.GetID(), nil
 }

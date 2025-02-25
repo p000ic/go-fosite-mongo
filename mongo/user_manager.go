@@ -155,7 +155,7 @@ func (u *UserManager) GetByUsername(ctx context.Context, username string) (resul
 	collection := u.DB.Collection(storage.EntityUsers)
 	err = collection.FindOne(ctx, query).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 
@@ -171,17 +171,17 @@ func (u *UserManager) Update(ctx context.Context, userID string, updatedUser sto
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, u.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, u.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	currentResource, err := u.getConcrete(ctx, userID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 
@@ -332,12 +332,12 @@ func (u *UserManager) AuthenticateMigration(ctx context.Context, currentAuth sto
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, u.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, u.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 	// Authenticate with old Hasher
 	user, authenticated := currentAuth(ctx)
@@ -379,17 +379,17 @@ func (u *UserManager) GrantScopes(ctx context.Context, userID string, scopes []s
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, u.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, u.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	user, err := u.getConcrete(ctx, userID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 
@@ -408,16 +408,16 @@ func (u *UserManager) RemoveScopes(ctx context.Context, userID string, scopes []
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, u.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, u.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 	user, err := u.getConcrete(ctx, userID)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return result, err
 		}
 		return result, err

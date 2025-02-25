@@ -1,22 +1,17 @@
 package main
 
 import (
-	"context"
 	"errors"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
-	"os/exec"
-	"os/signal"
-	"sync"
 
-	log "github.com/sirupsen/logrus"
 	goauth "golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
 
-	"github.com/p000ic/go-fosite-mongo/examples/authorizationserver"
-	"github.com/p000ic/go-fosite-mongo/examples/oauth2client"
-	"github.com/p000ic/go-fosite-mongo/examples/resourceserver"
+	"github.com/p000ic/go-fosite-mongo/examples/mongo/authorizationserver"
+	"github.com/p000ic/go-fosite-mongo/examples/mongo/oauth2client"
+	"github.com/p000ic/go-fosite-mongo/examples/mongo/resourceserver"
 )
 
 // A valid oauth2 client (check the store) that additionally requests an OpenID Connect id token
@@ -40,13 +35,17 @@ var appClientConf = clientcredentials.Config{
 }
 
 func main() {
+	log.Printf("server starting...")
+}
+
+func server() {
 	// configure HTTP server.
-	port := "8000"
+	port := "8080"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
 	srv := &http.Server{Addr: ":" + port}
-	fmt.Printf("server starting at port %s\n", port)
+	log.Printf("server starting at port %s\n", port)
 	// ### oauth2 server ###
 	authorizationserver.RegisterHandlers() // the authorization server (fosite)
 	// ### oauth2 client ###
@@ -57,34 +56,36 @@ func main() {
 	http.HandleFunc("/callback", oauth2client.CallbackHandler(clientConf)) // the oauth2 callback endpoint
 	// ### protected resource ###
 	http.HandleFunc("/protected", resourceserver.ProtectedEndpoint(appClientConf))
-	fmt.Println("Please open your web browser at http://localhost:" + port)
-	_ = exec.Command("open", "http://localhost:"+port).Run()
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-			// unexpected error
-			log.WithError(err).Error("error starting http server!")
-		}
-	}()
-	log.Infof("server started at port %s", port)
+	log.Println("Please open your web browser at http://localhost:" + port)
+	// _ = exec.Command("open", "http://localhost:"+port).Run()
+	// wg := sync.WaitGroup{}
+	// wg.Add(1)
+	// go func() {
+	// 	defer wg.Done()
+	//
+	// }()
+	// log.Printf("server started at port %s", port)
+	//
+	// // Set up signal capturing to know when the server is being killed..
+	// stop := make(chan os.Signal, 1)
+	// signal.Notify(stop, os.Interrupt)
+	//
+	// // Wait for SIGINT (pkill -2)
+	// <-stop
+	//
+	// // Gracefully shutdown the HTTP server.
+	// log.Printf("shutting down server...")
+	// if err := srv.Shutdown(context.TODO()); err != nil {
+	// 	// failure/timeout shutting down the server gracefully
+	// 	log.Fatalf("error gracefully shutting down http server!::%s", err.Error())
+	// }
+	//
+	// // wait for graceful shutdown.
+	// wg.Wait()
+	// log.Printf("server stopped!")
 
-	// Set up signal capturing to know when the server is being killed..
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt)
-
-	// Wait for SIGINT (pkill -2)
-	<-stop
-
-	// Gracefully shutdown the HTTP server.
-	log.Info("shutting down server...")
-	if err := srv.Shutdown(context.TODO()); err != nil {
-		// failure/timeout shutting down the server gracefully
-		log.WithError(err).Error("error gracefully shutting down http server")
+	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+		// unexpected error
+		log.Fatalf("error starting http server!::%s", err.Error())
 	}
-
-	// wait for graceful shutdown.
-	wg.Wait()
-	log.Error("server stopped!")
 }

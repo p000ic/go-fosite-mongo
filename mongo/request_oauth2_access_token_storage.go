@@ -30,17 +30,17 @@ func (r *RequestManager) GetAccessTokenSession(ctx context.Context, signature st
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, r.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, r.DB)
 		if err != nil {
 			return nil, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 	// Get the stored request
 	req, err := r.GetBySignature(ctx, storage.EntityAccessTokens, signature)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return nil, err
 		}
 		return nil, err
@@ -49,7 +49,7 @@ func (r *RequestManager) GetAccessTokenSession(ctx context.Context, signature st
 	// Transform to a fosite.Request
 	request, err = req.ToRequest(ctx, session, r.Clients)
 	if err != nil {
-		if err == fosite.ErrNotFound {
+		if errors.Is(err, fosite.ErrNotFound) {
 			return nil, err
 		}
 		return nil, err

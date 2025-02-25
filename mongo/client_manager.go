@@ -196,12 +196,12 @@ func (c *ClientManager) SetClientAssertionJWT(ctx context.Context, jti string, e
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, c.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, c.DB)
 		if err != nil {
 			return err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	// delete expired JTIs
@@ -234,12 +234,12 @@ func (c *ClientManager) Update(ctx context.Context, clientID string, updatedClie
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, c.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, c.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	currentResource, err := c.getConcrete(ctx, clientID)
@@ -383,12 +383,12 @@ func (c *ClientManager) AuthenticateMigration(ctx context.Context, currentAuth s
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, c.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, c.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	// Authenticate with old Hasher
@@ -437,12 +437,12 @@ func (c *ClientManager) GrantScopes(ctx context.Context, clientID string, scopes
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, c.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, c.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 	client, err := c.getConcrete(ctx, clientID)
 	if err != nil {
@@ -463,12 +463,12 @@ func (c *ClientManager) RemoveScopes(ctx context.Context, clientID string, scope
 	// Copy a new DB session if none specified
 	_, ok := ContextToSession(ctx)
 	if !ok {
-		var closeSession func()
-		ctx, closeSession, err = newSession(ctx, c.DB)
+		var sess func()
+		ctx, sess, err = newSession(ctx, c.DB)
 		if err != nil {
 			return result, err
 		}
-		defer closeSession()
+		defer sess()
 	}
 
 	client, err := c.getConcrete(ctx, clientID)

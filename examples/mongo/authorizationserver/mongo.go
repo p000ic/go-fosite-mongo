@@ -2,11 +2,10 @@ package authorizationserver
 
 import (
 	"context"
+	"log"
 	"time"
 
-	log "github.com/sirupsen/logrus"
-
-	"github.com/p000ic/go-fosite-mongo"
+	storage "github.com/p000ic/go-fosite-mongo"
 	"github.com/p000ic/go-fosite-mongo/mongo"
 )
 
@@ -15,19 +14,19 @@ import (
 // returns a teardown function to clean up after itself.
 func NewExampleMongoStore() *mongo.Store {
 	ctx := context.Background()
-	cfg := mongo.DefaultConfig()
-	cfg.Hostnames = []string{"192.168.2.69"}
+	cfg := &mongo.Config{}
+	cfg.Hostnames = []string{"127.0.0.1"}
 	cfg.Port = 27017
 	cfg.DatabaseName = "oauth2"
-	cfg.Username = "test"
-	cfg.Password = "test"
+	cfg.Username = ""
+	cfg.Password = ""
 	mongoStore, err := mongo.New(cfg, nil)
 	if err != nil {
 		// Make sure to check in on your mongo instance and drop the database
 		// to ensure you can start this up again and not have conflicting data
 		// attempted to be inserted.
-		log.Warn("error configuring/starting up connection to mongo. please ensure you drop the oauth2 database locally if it exists..")
-		log.WithError(err).Fatal("error creating new store")
+		log.Printf("error configuring/starting up connection to mongo. please ensure you drop the oauth2 database locally if it exists..")
+		log.Fatalf("error creating new store:%s", err.Error())
 	}
 
 	// The general setup when working with the database is to create a session
@@ -40,12 +39,11 @@ func NewExampleMongoStore() *mongo.Store {
 	// pushing the session into the context so all db handlers can use the same
 	// connection/session and provides a function to be able to cleanly close
 	// the session for us, which we can defer to later.
-	ctx, closeSession, err := mongoStore.NewSession(ctx)
+	ctx, sess, err := mongoStore.NewSession(ctx)
 	if err != nil {
-		// oh, noes! creating a mongo session broke :/
-		log.WithError(err).Fatal("error creating new session")
+		log.Fatalf("error creating new session:%s", err.Error())
 	}
-	defer closeSession()
+	defer sess()
 
 	// Inject our test clients
 	clients := []storage.Client{
@@ -87,27 +85,22 @@ func NewExampleMongoStore() *mongo.Store {
 
 // TeardownMongo drops the database.
 func TeardownMongo() {
-	log.Info("dropping mongo database: oauth2")
+	log.Printf("dropping mongo database: oauth2")
 	err := store.DB.Drop(nil)
 	if err != nil {
-		log.Error("error dropping oauth2 db:", err)
+		log.Printf("error dropping oauth2 db:%s", err.Error())
 		return
 	}
-	log.Info("mongo database oauth2 dropped successfully!")
+	log.Printf("mongo database oauth2 dropped successfully!")
 }
 
 func createClients(ctx context.Context, store *mongo.Store, clients []storage.Client) {
 	// Clean up after failed runs
 	for _, client := range clients {
-		logger := log.WithFields(log.Fields{
-			"id":   client.ID,
-			"name": client.Name,
-		})
-
 		// Attempt to remove any past remnant from bad builds/panics e.t.c.
 		err := store.ClientManager.Delete(ctx, client.ID)
 		if err == nil {
-			logger.Debug("client found and deleted to enable clean start")
+			log.Printf("client found and deleted to enable clean start")
 		}
 
 		// Create the new client!
@@ -116,17 +109,12 @@ func createClients(ctx context.Context, store *mongo.Store, clients []storage.Cl
 			// err, it broke... ?
 			panic(err)
 		}
-		logger.Info("new client created!")
+		log.Printf("new client created!")
 	}
 }
 
 func createUsers(ctx context.Context, store *mongo.Store, users []storage.User) {
 	for _, user := range users {
-		logger := log.WithFields(log.Fields{
-			"id":       user.ID,
-			"username": user.Username,
-		})
-
 		// Attempt to remove any past remnant from bad builds/panics e.t.c.
 		oldUser, err := store.UserManager.GetByUsername(ctx, user.Username)
 		if err == nil {
@@ -134,7 +122,7 @@ func createUsers(ctx context.Context, store *mongo.Store, users []storage.User) 
 			// but here you can see how the storage handlers can work together
 			err := store.UserManager.Delete(ctx, oldUser.ID)
 			if err == nil {
-				logger.Debug("client found and deleted to enable clean start")
+				log.Printf("client found and deleted to enable clean start")
 			}
 		}
 
@@ -144,6 +132,6 @@ func createUsers(ctx context.Context, store *mongo.Store, users []storage.User) 
 			// err, it broke... ?
 			panic(err)
 		}
-		logger.Info("new user created!")
+		log.Printf("new user created!")
 	}
 }

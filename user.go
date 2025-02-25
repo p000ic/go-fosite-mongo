@@ -76,9 +76,14 @@ type User struct {
 	ProfileURI string `bson:"profile_uri" json:"profileUri,omitempty" xml:"profileUri,omitempty"`
 }
 
+// GetID returns the User's ID.
+func (u *User) GetID() string {
+	return u.ID
+}
+
 // FullName concatenates the User's First Name and Last Name for templating
 // purposes
-func (u User) FullName() string {
+func (u *User) FullName() string {
 	return strings.TrimSpace(fmt.Sprintf("%s %s", u.FirstName, u.LastName))
 }
 
@@ -94,13 +99,13 @@ func (u *User) SetPassword(cleartext string, hasher fosite.Hasher) (err error) {
 	return nil
 }
 
-// GetHashedSecret returns the Users's Hashed Secret as a byte array
+// GetHashedSecret returns the User's Hashed Secret as a byte array
 func (u *User) GetHashedSecret() []byte {
 	return []byte(u.Password)
 }
 
 // Authenticate compares a cleartext string against the user's
-func (u User) Authenticate(cleartext string, hasher fosite.Hasher) error {
+func (u *User) Authenticate(cleartext string, hasher fosite.Hasher) error {
 	return hasher.Compare(context.TODO(), u.GetHashedSecret(), []byte(cleartext))
 }
 
@@ -146,7 +151,7 @@ func (u *User) DisableRoles(roles ...string) {
 
 // Equal enables checking equality as having a byte array in a struct stops
 // allowing direct equality checks.
-func (u User) Equal(x User) bool {
+func (u *User) Equal(x User) bool {
 	if u.ID != x.ID {
 		return false
 	}
@@ -207,6 +212,6 @@ func (u User) Equal(x User) bool {
 }
 
 // IsEmpty returns true if the current user holds no data.
-func (u User) IsEmpty() bool {
+func (u *User) IsEmpty() bool {
 	return u.Equal(User{})
 }

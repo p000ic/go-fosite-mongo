@@ -19,9 +19,12 @@ type Store struct {
 // resource returned as well via:
 // - `store.RequestManager.Authenticate(ctx, username, secret) error`
 // - `store.UserManager.Authenticate(ctx, username, secret) (User, error)`
-func (s *Store) Authenticate(ctx context.Context, username string, secret string) error {
-	_, err := s.UserManager.Authenticate(ctx, username, secret)
-	return err
+func (s *Store) Authenticate(ctx context.Context, username string, secret string) (subject string, err error) {
+	user, err := s.UserManager.Authenticate(ctx, username, secret)
+	if err != nil {
+		return "", err
+	}
+	return user.GetID(), nil
 }
 
 // AuthClientFunc enables developers to supply their own authentication
