@@ -1,10 +1,14 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
+	"os/signal"
+	"sync"
 
 	goauth "golang.org/x/oauth2"
 	"golang.org/x/oauth2/clientcredentials"
@@ -35,12 +39,8 @@ var appClientConf = clientcredentials.Config{
 }
 
 func main() {
-	log.Printf("server starting...")
-}
-
-func server() {
 	// configure HTTP server.
-	port := "8080"
+	port := "3846"
 	if os.Getenv("PORT") != "" {
 		port = os.Getenv("PORT")
 	}
@@ -57,35 +57,33 @@ func server() {
 	// ### protected resource ###
 	http.HandleFunc("/protected", resourceserver.ProtectedEndpoint(appClientConf))
 	log.Println("Please open your web browser at http://localhost:" + port)
-	// _ = exec.Command("open", "http://localhost:"+port).Run()
-	// wg := sync.WaitGroup{}
-	// wg.Add(1)
-	// go func() {
-	// 	defer wg.Done()
-	//
-	// }()
-	// log.Printf("server started at port %s", port)
-	//
-	// // Set up signal capturing to know when the server is being killed..
-	// stop := make(chan os.Signal, 1)
-	// signal.Notify(stop, os.Interrupt)
-	//
-	// // Wait for SIGINT (pkill -2)
-	// <-stop
-	//
-	// // Gracefully shutdown the HTTP server.
-	// log.Printf("shutting down server...")
-	// if err := srv.Shutdown(context.TODO()); err != nil {
-	// 	// failure/timeout shutting down the server gracefully
-	// 	log.Fatalf("error gracefully shutting down http server!::%s", err.Error())
-	// }
-	//
-	// // wait for graceful shutdown.
-	// wg.Wait()
-	// log.Printf("server stopped!")
+	_ = exec.Command("open", "http://localhost:"+port).Run()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
+			// unexpected error
+			log.Fatalf("error starting http server!::%s", err.Error())
+		}
+	}()
+	log.Printf("server started at port %s", port)
 
-	if err := srv.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
-		// unexpected error
-		log.Fatalf("error starting http server!::%s", err.Error())
+	// Set up signal capturing to know when the server is being killed..
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt)
+
+	// Wait for SIGINT (pkill -2)
+	<-stop
+
+	// Gracefully shutdown the HTTP server.
+	log.Printf("shutting down server...")
+	if err := srv.Shutdown(context.TODO()); err != nil {
+		// failure/timeout shutting down the server gracefully
+		log.Fatalf("error gracefully shutting down http server!::%s", err.Error())
 	}
+	authorizationserver.TeardownMongo()
+	// wait for graceful shutdown.
+	wg.Wait()
+	log.Printf("server stopped!")
 }

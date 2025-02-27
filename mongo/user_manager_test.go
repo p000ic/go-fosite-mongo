@@ -1,4 +1,4 @@
-package mongo_test
+package mongo
 
 import (
 	// Standard Library Imports
@@ -14,7 +14,6 @@ import (
 
 	// Internal Imports
 	"github.com/p000ic/go-fosite-mongo"
-	"github.com/p000ic/go-fosite-mongo/mongo"
 )
 
 func expectedUser() storage.User {
@@ -48,7 +47,7 @@ func expectedUser() storage.User {
 	}
 }
 
-func createUser(ctx context.Context, t *testing.T, store *mongo.Store) storage.User {
+func createUser(ctx context.Context, t *testing.T, store *Store) storage.User {
 	expected := expectedUser()
 	got, err := store.UserManager.Create(ctx, expected)
 	if err != nil {
@@ -70,14 +69,14 @@ func createUser(ctx context.Context, t *testing.T, store *mongo.Store) storage.U
 	return expected
 }
 
-func TestUserManager_Create(t *testing.T) {
+func TestUserManagerCreate(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
 	createUser(ctx, t, store)
 }
 
-func TestUserManager_Create_ShouldConflict(t *testing.T) {
+func TestUserManagerCreateShouldConflict(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -91,7 +90,7 @@ func TestUserManager_Create_ShouldConflict(t *testing.T) {
 	}
 }
 
-func TestUserManager_Create_ShouldConflictOnUsername(t *testing.T) {
+func TestUserManagerCreateShouldConflictOnUsername(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -106,7 +105,7 @@ func TestUserManager_Create_ShouldConflictOnUsername(t *testing.T) {
 	}
 }
 
-func TestUserManager_Get(t *testing.T) {
+func TestUserManagerGet(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -120,7 +119,7 @@ func TestUserManager_Get(t *testing.T) {
 	}
 }
 
-func TestUserManager_Get_ShouldReturnNotFound(t *testing.T) {
+func TestUserManagerGetShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -131,7 +130,7 @@ func TestUserManager_Get_ShouldReturnNotFound(t *testing.T) {
 	}
 }
 
-func TestUserManager_Update(t *testing.T) {
+func TestUserManagerUpdate(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -164,7 +163,7 @@ func TestUserManager_Update(t *testing.T) {
 	}
 }
 
-func TestUserManager_Update_ShouldChangePassword(t *testing.T) {
+func TestUserManagerUpdateShouldChangePassword(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -210,7 +209,7 @@ func TestUserManager_Update_ShouldChangePassword(t *testing.T) {
 	}
 }
 
-func TestUserManager_Update_ShouldConflictUsername(t *testing.T) {
+func TestUserManagerUpdateShouldConflictUsername(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -243,7 +242,7 @@ func TestUserManager_Update_ShouldConflictUsername(t *testing.T) {
 	}
 }
 
-func TestUserManager_Update_ShouldReturnNotFound(t *testing.T) {
+func TestUserManagerUpdateShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -256,7 +255,7 @@ func TestUserManager_Update_ShouldReturnNotFound(t *testing.T) {
 	}
 }
 
-func TestUserManager_Delete(t *testing.T) {
+func TestUserManagerDelete(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -275,7 +274,7 @@ func TestUserManager_Delete(t *testing.T) {
 	}
 }
 
-func TestUserManager_Delete_ShouldReturnNotFound(t *testing.T) {
+func TestUserManagerDeleteShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 

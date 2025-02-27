@@ -31,15 +31,15 @@ type DeniedJtiManager struct {
 
 // Configure implements storage.Configure.
 func (d *DeniedJtiManager) Configure(ctx context.Context) (err error) {
-	// indices := []mongo.IndexModel{
-	// 	NewUniqueIndex(IdxSignatureID, "signature"),
-	// 	NewIndex(IdxExpires, "exp"),
-	// }
-	// collection := d.DB.Collection(storage.EntityJtiDenylist)
-	// _, err = collection.Indexes().CreateMany(ctx, indices)
-	// if err != nil {
-	// 	return err
-	// }
+	indices := []mongo.IndexModel{
+		NewUniqueIndex(IdxSignatureID, "signature"),
+		NewIndex(IdxExpires, "exp"),
+	}
+	collection := d.DB.Collection(storage.EntityJtiDenylist)
+	_, err = collection.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

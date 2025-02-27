@@ -13,13 +13,14 @@ import (
 // init configures and starts an example mongo datastore, then
 // returns a teardown function to clean up after itself.
 func NewExampleMongoStore() *mongo.Store {
-	ctx := context.Background()
 	cfg := &mongo.Config{}
-	cfg.Hostnames = []string{"127.0.0.1"}
+	cfg.Hostnames = []string{"localhost"}
 	cfg.Port = 27017
 	cfg.DatabaseName = "oauth2"
-	cfg.Username = ""
-	cfg.Password = ""
+	cfg.Username = "test"
+	cfg.Password = "test"
+	cfg.AuthDB = "admin"
+	ctx := context.Background()
 	mongoStore, err := mongo.New(cfg, nil)
 	if err != nil {
 		// Make sure to check in on your mongo instance and drop the database

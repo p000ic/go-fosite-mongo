@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 )
 
-func TestRequestMongoManager_ImplementsFositeOpenidOpenIDConnectRequestStorageInterface(t *testing.T) {
+func TestRequestMongoManagerImplementsFositeOpenidOpenIDConnectRequestStorageInterface(t *testing.T) {
 	r := &RequestManager{}
 
 	var i interface{} = r

@@ -11,7 +11,7 @@ import (
 	"github.com/p000ic/go-fosite-mongo"
 )
 
-func TestClientMongoManager_ImplementsStorageConfigurer(t *testing.T) {
+func TestClientMongoManagerImplementsStorageConfigurer(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
@@ -20,7 +20,7 @@ func TestClientMongoManager_ImplementsStorageConfigurer(t *testing.T) {
 	}
 }
 
-func TestClientMongoManager_ImplementsStorageAuthClientMigrator(t *testing.T) {
+func TestClientMongoManagerImplementsStorageAuthClientMigrator(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
@@ -29,7 +29,7 @@ func TestClientMongoManager_ImplementsStorageAuthClientMigrator(t *testing.T) {
 	}
 }
 
-func TestClientMongoManager_ImplementsFositeClientManager(t *testing.T) {
+func TestClientMongoManagerImplementsFositeClientManager(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
@@ -38,7 +38,7 @@ func TestClientMongoManager_ImplementsFositeClientManager(t *testing.T) {
 	}
 }
 
-func TestClientMongoManager_ImplementsFositeStorage(t *testing.T) {
+func TestClientMongoManagerImplementsFositeStorage(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
@@ -47,7 +47,7 @@ func TestClientMongoManager_ImplementsFositeStorage(t *testing.T) {
 	}
 }
 
-func TestClientMongoManager_ImplementsStorageClientStorer(t *testing.T) {
+func TestClientMongoManagerImplementsStorageClientStorer(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c
@@ -56,7 +56,7 @@ func TestClientMongoManager_ImplementsStorageClientStorer(t *testing.T) {
 	}
 }
 
-func TestClientMongoManager_ImplementsStorageClientManager(t *testing.T) {
+func TestClientMongoManagerImplementsStorageClientManager(t *testing.T) {
 	c := &ClientManager{}
 
 	var i interface{} = c

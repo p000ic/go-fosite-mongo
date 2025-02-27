@@ -1,23 +1,19 @@
-package mongo_test
+package mongo
 
 import (
-	// Standard Library Imports
 	"context"
 	"errors"
 	"reflect"
 	"testing"
 	"time"
 
-	// External Imports
 	"github.com/google/uuid"
 	"github.com/ory/fosite"
 
-	// Internal Imports
-	"github.com/p000ic/go-fosite-mongo"
-	"github.com/p000ic/go-fosite-mongo/mongo"
+	storage "github.com/p000ic/go-fosite-mongo"
 )
 
-func TestClientManager_List(t *testing.T) {
+func TestClientManagerList(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -39,7 +35,10 @@ func TestClientManager_List(t *testing.T) {
 		Contacts:            []string{},
 		Published:           true,
 	}
-	publishedClient = createNewClient(t, ctx, store, publishedClient)
+	publishedClient, err := createNewClient(t, ctx, store, publishedClient)
+	if err != nil {
+		t.Fatalf("createClient(): %s", err)
+	}
 
 	type args struct {
 		filter storage.ListClientsRequest
@@ -385,6 +384,7 @@ func TestClientManager_List(t *testing.T) {
 	}
 
 	for _, tt := range tests {
+		t.Logf("Running test case: %s", tt.name)
 		t.Run(tt.name, func(t *testing.T) {
 			gotResults, err := store.ClientManager.List(ctx, tt.args.filter)
 			if (err != nil) != tt.wantErr {
@@ -394,6 +394,7 @@ func TestClientManager_List(t *testing.T) {
 
 			if !reflect.DeepEqual(gotResults, tt.wantResults) {
 				t.Errorf("List():\ngot:  %#+v\nwant: %#+v\n", gotResults, tt.wantResults)
+				return
 			}
 		})
 	}
@@ -448,21 +449,27 @@ func expectedClient() storage.Client {
 	}
 }
 
-func createClient(ctx context.Context, t *testing.T, store *mongo.Store) storage.Client {
+func createClient(ctx context.Context, t *testing.T, store *Store) storage.Client {
 	expected := expectedClient()
-	return createNewClient(t, ctx, store, expected)
+	newCli, err := createNewClient(t, ctx, store, expected)
+	if err != nil {
+		t.Fatalf("createClient(): %s", err)
+	}
+	return newCli
 }
 
-func createNewClient(t *testing.T, ctx context.Context, store *mongo.Store, expected storage.Client) storage.Client {
+func createNewClient(t *testing.T, ctx context.Context, store *Store, expected storage.Client) (storage.Client, error) {
 	got, err := store.ClientManager.Create(ctx, expected)
 	if err != nil {
+		t.Errorf("createNewClient(): %s", err)
 		AssertError(t, err, nil, "create should return no database errors")
-		t.FailNow()
+		return storage.Client{}, err
 	}
 
 	if got.Secret == "" || got.Secret == expected.Secret {
+		t.Errorf("createNewClient(): %s", err)
 		AssertError(t, got.Secret, "bcrypt encoded secret", "create should hash the secret")
-		t.FailNow()
+		return storage.Client{}, err
 	}
 
 	expected.ID = got.ID
@@ -470,21 +477,22 @@ func createNewClient(t *testing.T, ctx context.Context, store *mongo.Store, expe
 	expected.UpdateTime = got.UpdateTime
 	expected.Secret = got.Secret
 	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("createNewClient(): %s", err)
 		AssertError(t, got, expected, "client not equal")
-		t.FailNow()
+		return storage.Client{}, err
 	}
 
-	return expected
+	return expected, nil
 }
 
-func TestClientManager_Create(t *testing.T) {
+func TestClientManagerCreate(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
 	createClient(ctx, t, store)
 }
 
-func TestClientManager_Create_ShouldConflict(t *testing.T) {
+func TestClientManagerCreateShouldConflict(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -498,7 +506,7 @@ func TestClientManager_Create_ShouldConflict(t *testing.T) {
 	}
 }
 
-func TestClientManager_Get(t *testing.T) {
+func TestClientManagerGet(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -512,7 +520,7 @@ func TestClientManager_Get(t *testing.T) {
 	}
 }
 
-func TestClientManager_Get_ShouldReturnNotFound(t *testing.T) {
+func TestClientManagerGetShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -523,7 +531,7 @@ func TestClientManager_Get_ShouldReturnNotFound(t *testing.T) {
 	}
 }
 
-func TestClientManager_Update(t *testing.T) {
+func TestClientManagerUpdate(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -554,7 +562,7 @@ func TestClientManager_Update(t *testing.T) {
 	}
 }
 
-func TestClientManager_Update_ShouldChangePassword(t *testing.T) {
+func TestClientManagerUpdateShouldChangePassword(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -563,7 +571,12 @@ func TestClientManager_Update_ShouldChangePassword(t *testing.T) {
 	oldHash := expected.Secret
 
 	// Perform a password update.
-	expected.Secret = newSecret
+	hash, err := store.Hasher.Hash(ctx, []byte(newSecret))
+	if err != nil {
+		AssertError(t, err, nil, "unable to hash new secret")
+		return
+	}
+	expected.Secret = string(hash)
 
 	got, err := store.ClientManager.Update(ctx, expected.ID, expected)
 	if err != nil {
@@ -583,7 +596,7 @@ func TestClientManager_Update_ShouldChangePassword(t *testing.T) {
 	}
 
 	// Should authenticate against the new hash
-	if err := store.Hasher.Compare(ctx, got.GetHashedSecret(), []byte(newSecret)); err != nil {
+	if err = store.Hasher.Compare(ctx, got.GetHashedSecret(), []byte(newSecret)); err != nil {
 		AssertError(t, got.Secret, "bcrypt authenticate-able hash", "unable to authenticate with updated hash")
 	}
 
@@ -600,7 +613,7 @@ func TestClientManager_Update_ShouldChangePassword(t *testing.T) {
 	}
 }
 
-func TestClientManager_Update_ShouldReturnNotFound(t *testing.T) {
+func TestClientManagerUpdateShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -613,7 +626,7 @@ func TestClientManager_Update_ShouldReturnNotFound(t *testing.T) {
 	}
 }
 
-func TestClientManager_Delete(t *testing.T) {
+func TestClientManagerDelete(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 
@@ -632,7 +645,7 @@ func TestClientManager_Delete(t *testing.T) {
 	}
 }
 
-func TestClientManager_Delete_ShouldReturnNotFound(t *testing.T) {
+func TestClientManagerDelete_ShouldReturnNotFound(t *testing.T) {
 	store, ctx, teardown := setup(t)
 	defer teardown()
 

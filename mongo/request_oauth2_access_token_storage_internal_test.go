@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 )
 
-func TestRequestMongoManager_ImplementsFositeAccessTokenStorageInterface(t *testing.T) {
+func TestRequestMongoManagerImplementsFositeAccessTokenStorageInterface(t *testing.T) {
 	r := &RequestManager{}
 
 	var i interface{} = r

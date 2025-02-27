@@ -1,4 +1,4 @@
-package mongo_test
+package mongo
 
 import (
 	// Standard Library Imports
@@ -7,8 +7,8 @@ import (
 	"os"
 	"testing"
 
-	// Public Imports
-	"github.com/p000ic/go-fosite-mongo/mongo"
+	"github.com/smartystreets/goconvey/convey"
+	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
 func TestMain(m *testing.M) {
@@ -28,11 +28,16 @@ func AssertFatal(t *testing.T, got interface{}, want interface{}, msg string) {
 	t.Fatalf(fmt.Sprintf("Fatal: %s\n	 got: %#+v\n	want: %#+v", msg, got, want))
 }
 
-func setup(t *testing.T) (*mongo.Store, context.Context, func()) {
-	// Build our default mongo storage layer
-	cfg := mongo.DefaultConfig()
-	cfg.DatabaseName = "fositeStorageTest"
-	store, err := mongo.New(cfg, nil)
+func setup(t *testing.T) (*Store, context.Context, func()) {
+	cfg := &Config{}
+	cfg.Hostnames = []string{"localhost"}
+	cfg.Port = 27017
+	cfg.DatabaseName = "oauth2"
+	cfg.Username = "test"
+	cfg.Password = "test"
+	cfg.AuthDB = "admin"
+
+	store, err := New(cfg, nil)
 	if err != nil {
 		AssertFatal(t, err, nil, "mongo connection error")
 	}
@@ -45,11 +50,12 @@ func setup(t *testing.T) (*mongo.Store, context.Context, func()) {
 		AssertFatal(t, err, nil, "error getting mongo session")
 	}
 
-	return store, ctx, func() {
+	teardown := func() {
 		// Drop the database.
 		err = store.DB.Drop(ctx)
 		if err != nil {
 			t.Errorf("error dropping database on cleanup: %s", err)
+			return
 		}
 
 		// Close the inner (test) session if it exists.
@@ -58,4 +64,38 @@ func setup(t *testing.T) (*mongo.Store, context.Context, func()) {
 		// Close the database connection.
 		store.Close()
 	}
+
+	return store, ctx, teardown
+}
+
+// TestNewStore tests the NewDefaultStore function.
+func TestNewStore(t *testing.T) {
+	cfg := &Config{}
+	cfg.Hostnames = []string{"localhost"}
+	cfg.Port = 27017
+	cfg.DatabaseName = "oauth2"
+	cfg.Username = "test"
+	cfg.Password = "test"
+	cfg.AuthDB = "admin"
+
+	convey.Convey("Default store", t, func() {
+		store, err := New(cfg, nil)
+		convey.So(err, convey.ShouldBeNil)
+		convey.So(store.DB, convey.ShouldNotBeNil)
+
+		convey.Convey("Store should be functional", func() {
+			collNames, err := store.DB.ListCollectionNames(context.Background(), bson.D{})
+			convey.So(err, convey.ShouldBeNil)
+			convey.So(collNames, convey.ShouldNotBeEmpty)
+			if err != nil {
+				t.Errorf("Error listing collections: %s", err)
+				return
+			}
+			t.Logf("Collections: %v", collNames)
+		})
+
+		convey.Convey("Close the store", func() {
+			store.Close()
+		})
+	})
 }

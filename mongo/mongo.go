@@ -5,12 +5,14 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
 	// External Imports
 	"github.com/ory/fosite"
 	"go.mongodb.org/mongo-driver/v2/bson"
+	"go.mongodb.org/mongo-driver/v2/event"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 	"go.mongodb.org/mongo-driver/v2/mongo/readpref"
@@ -21,10 +23,13 @@ import (
 
 func init() {}
 
-const (
-	defaultHost         = "localhost"
-	defaultPort         = 27017
-	defaultDatabaseName = "oauth2"
+var (
+	defaultHost         = ""
+	defaultPort         = 0
+	defaultDatabaseName = ""
+	defaultUsername     = ""
+	defaultPassword     = ""
+	defaultAuthDB       = ""
 )
 
 // Store provides a MongoDB storage driver compatible with fosite's required
@@ -104,11 +109,11 @@ type Config struct {
 	Hostnames        []string    `default:"localhost" envconfig:"CONNECTIONS_MONGO_HOSTNAMES"`
 	Port             uint16      `default:"27017"     envconfig:"CONNECTIONS_MONGO_PORT"`
 	SSL              bool        `default:"false"     envconfig:"CONNECTIONS_MONGO_SSL"`
-	AuthDB           string      `default:"admin"     envconfig:"CONNECTIONS_MONGO_AUTHDB"`
+	AuthDB           string      `default:"admin"     envconfig:"CONNECTIONS_MONGO_AUTH_DB"`
 	Username         string      `default:""          envconfig:"CONNECTIONS_MONGO_USERNAME"`
 	Password         string      `default:""          envconfig:"CONNECTIONS_MONGO_PASSWORD"`
 	DatabaseName     string      `default:""          envconfig:"CONNECTIONS_MONGO_NAME"`
-	Replset          string      `default:""          envconfig:"CONNECTIONS_MONGO_REPLSET"`
+	Replicaset       string      `default:""          envconfig:"CONNECTIONS_MONGO_REPLICASET"`
 	Timeout          uint        `default:"10"        envconfig:"CONNECTIONS_MONGO_TIMEOUT"`
 	PoolMinSize      uint64      `default:"0"         envconfig:"CONNECTIONS_MONGO_POOL_MIN_SIZE"`
 	PoolMaxSize      uint64      `default:"100"       envconfig:"CONNECTIONS_MONGO_POOL_MAX_SIZE"`
@@ -120,11 +125,15 @@ type Config struct {
 
 // DefaultConfig returns a configuration for a locally hosted, unauthenticated mongo
 func DefaultConfig() *Config {
-	return &Config{
+	cfg := &Config{
 		Hostnames:    []string{defaultHost},
-		Port:         defaultPort,
+		Port:         uint16(defaultPort),
 		DatabaseName: defaultDatabaseName,
+		AuthDB:       defaultAuthDB,
+		Username:     defaultUsername,
+		Password:     defaultPassword,
 	}
+	return cfg
 }
 
 // ConnectionInfo configures options for establishing a session with a MongoDB cluster.
@@ -144,16 +153,18 @@ func ConnectionInfo(cfg *Config) *options.ClientOptions {
 		clientOpts.ApplyURI(cfg.Hostnames[0])
 	} else {
 		for i := range cfg.Hostnames {
-			cfg.Hostnames[i] = fmt.Sprintf("%s:%d", cfg.Hostnames[i], cfg.Port)
+			if cfg.Port != 0 && !strings.Contains(cfg.Hostnames[i], ":") {
+				cfg.Hostnames[i] = fmt.Sprintf("%s:%d", cfg.Hostnames[i], cfg.Port)
+			}
 		}
 		clientOpts.SetHosts(cfg.Hostnames)
 	}
 
 	if cfg.Timeout == 0 {
-		cfg.Timeout = 10
+		cfg.Timeout = 1
 	}
 
-	clientOpts.SetReplicaSet(cfg.Replset).
+	clientOpts.
 		SetConnectTimeout(time.Second * time.Duration(cfg.Timeout)).
 		SetReadPreference(readpref.SecondaryPreferred()).
 		SetMinPoolSize(cfg.PoolMinSize).
@@ -161,7 +172,7 @@ func ConnectionInfo(cfg *Config) *options.ClientOptions {
 		SetCompressors(cfg.Compressors).
 		SetAppName(cfg.DatabaseName)
 
-	if cfg.Username != "" || cfg.Password != "" {
+	if cfg.Username != "" && cfg.Password != "" {
 		auth := options.Credential{
 			AuthMechanism: "SCRAM-SHA-1",
 			AuthSource:    cfg.AuthDB,
@@ -191,18 +202,40 @@ func ConnectionInfo(cfg *Config) *options.ClientOptions {
 // Connect returns a connection to a mongo database.
 func Connect(cfg *Config) (*mongo.Database, error) {
 	ctx := context.Background()
-	dialInfo := ConnectionInfo(cfg)
-	client, err := mongo.Connect(dialInfo)
+	opts := ConnectionInfo(cfg)
+
+	// If the application makes multiple concurrent requests, it would have to
+	// use a concurrent map like sync.Map
+	startedCommands := make(map[int64]bson.Raw)
+	cmdMonitor := &event.CommandMonitor{
+		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
+			startedCommands[evt.RequestID] = evt.Command
+		},
+		Succeeded: func(_ context.Context, evt *event.CommandSucceededEvent) {
+			// log.Debugf("cmd: %v success-resp: %v", startedCommands[evt.RequestID], evt.Reply)
+			// Empty "startedCommands" for the request ID to avoid a memory leak.
+			delete(startedCommands, evt.RequestID)
+		},
+		Failed: func(_ context.Context, evt *event.CommandFailedEvent) {
+			log.Printf("cmd: %v failure-resp: %v", startedCommands[evt.RequestID], evt.Failure)
+			// Empty "startedCommands" for the request ID to avoid a memory leak.
+			delete(startedCommands, evt.RequestID)
+		},
+	}
+	opts.SetMonitor(cmdMonitor)
+	client, err := mongo.Connect(opts)
 	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
 
 	// check connection works as mongo-go lazily connects.
 	err = client.Ping(ctx, nil)
 	if err != nil {
+		log.Println(err.Error())
 		return nil, err
 	}
-
+	// log.Printf("mongo-db-connection-successful")
 	return client.Database(cfg.DatabaseName), nil
 }
 
@@ -220,7 +253,7 @@ func New(cfg *Config, hash fosite.Hasher) (*Store, error) {
 
 	if hash == nil {
 		// Initialize default fosite Hasher.
-		hash = &fosite.BCrypt{Config: &fosite.Config{HashCost: 24}}
+		hash = &fosite.BCrypt{Config: &fosite.Config{HashCost: 8}}
 	}
 
 	// Build up the mongo endpoints
@@ -245,12 +278,11 @@ func New(cfg *Config, hash fosite.Hasher) (*Store, error) {
 	}
 
 	// attempt to perform index updates in a session.
-	var sess func()
-	ctx, sess, err := newSession(context.Background(), mongoDB)
+	ctx, closeSess, err := newSession(context.Background(), mongoDB)
 	if err != nil {
 		return nil, err
 	}
-	defer sess()
+	defer closeSess()
 
 	// Configure DB collections, indices, TTLs e.t.c.
 	if err = configureDatabases(ctx, mongoClients, mongoDeniedJTIs, mongoUsers, mongoRequests); err != nil {
@@ -278,9 +310,9 @@ func New(cfg *Config, hash fosite.Hasher) (*Store, error) {
 
 // configureDatabases calls the configuration handler for the provided
 // configures.
-func configureDatabases(ctx context.Context, configurers ...storage.Configure) error {
-	for _, configurer := range configurers {
-		if err := configurer.Configure(ctx); err != nil {
+func configureDatabases(ctx context.Context, cfgs ...storage.Configure) error {
+	for _, cfg := range cfgs {
+		if err := cfg.Configure(ctx); err != nil {
 			return err
 		}
 	}
@@ -300,13 +332,6 @@ func configureExpiry(ctx context.Context, ttl int, expires ...storage.Expire) er
 	return nil
 }
 
-// NewDefaultStore returns a Store configured with the default mongo
-// configuration and default Hasher.
-func NewDefaultStore() (*Store, error) {
-	cfg := DefaultConfig()
-	return New(cfg, nil)
-}
-
 // NewIndex generates a new index model, ready to be saved in mongo.
 //
 // Note:
@@ -315,9 +340,10 @@ func NewDefaultStore() (*Store, error) {
 func NewIndex(name string, keys ...string) (model mongo.IndexModel) {
 	idxModel := mongo.IndexModel{
 		Keys: generateIndexKeys(keys...),
+		Options: options.Index().
+			SetName(name).
+			SetUnique(false),
 	}
-	idxModel.Options.SetName(name)
-	idxModel.Options.SetUnique(false)
 	return idxModel
 }
 
@@ -326,9 +352,10 @@ func NewIndex(name string, keys ...string) (model mongo.IndexModel) {
 func NewUniqueIndex(name string, keys ...string) mongo.IndexModel {
 	idxModel := mongo.IndexModel{
 		Keys: generateIndexKeys(keys...),
+		Options: options.Index().
+			SetName(name).
+			SetUnique(true),
 	}
-	idxModel.Options.SetName(name)
-	idxModel.Options.SetUnique(true)
 	return idxModel
 }
 
@@ -337,10 +364,11 @@ func NewUniqueIndex(name string, keys ...string) mongo.IndexModel {
 func NewExpiryIndex(name string, key string, expireAfter int) (model mongo.IndexModel) {
 	idxModel := mongo.IndexModel{
 		Keys: bson.D{{Key: key, Value: int32(1)}},
+		Options: options.Index().
+			SetName(name).
+			SetUnique(false).
+			SetExpireAfterSeconds(int32(expireAfter)),
 	}
-	idxModel.Options.SetName(name)
-	idxModel.Options.SetUnique(false)
-	idxModel.Options.SetExpireAfterSeconds(int32(expireAfter))
 	return idxModel
 }
 

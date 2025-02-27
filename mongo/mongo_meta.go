@@ -44,7 +44,7 @@ func SessionToContext(ctx context.Context, session *mongo.Session) context.Conte
 
 // ContextToSession provides a way to obtain a mongo session, if contained
 // within the presented context.
-func ContextToSession(ctx context.Context) (sess *mongo.Session, ok bool) {
+func ContextToSession(ctx context.Context) (*mongo.Session, bool) {
 	if sess := mongo.SessionFromContext(ctx); sess != nil {
 		return sess, true
 	}

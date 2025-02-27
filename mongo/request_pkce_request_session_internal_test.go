@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/pkce"
 )
 
-func TestRequestMongoManager_ImplementsFositePkcePKCERequestStorageInterface(t *testing.T) {
+func TestRequestMongoManagerImplementsFositePkcePKCERequestStorageInterface(t *testing.T) {
 	r := &RequestManager{}
 
 	var i interface{} = r

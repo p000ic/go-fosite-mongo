@@ -29,21 +29,6 @@ func RegisterHandlers() {
 //  3. secret - required for code, access and refresh token generation.
 //  4. privateKey - required for id/jwt token generation.
 var (
-	// Check the api documentation of `compose.Config` for further configuration options.
-	config = &fosite.Config{
-		AccessTokenLifespan: time.Minute * 5,
-		// ...
-	}
-
-	// This is the example storage that sets up:
-	// * an OAuth2 Client with id "my-client" and secret "foobar" capable of all oauth2 and open id connect grant and response types.
-	// * a User for the resource owner password credentials grant type with username "peter" and password "secret".
-	// Refer `mongo.go` for how this is configured and set up.
-	//
-	// NewExampleMongoStore creates an example Mongo datastore that will panic if you don't have an unauthenticated
-	// mongo database that can be found at `localhost:27017`.
-	store = NewExampleMongoStore()
-
 	// This secret is used to sign authorize codes, access and refresh tokens.
 	// It has to be 32-bytes long for HMAC signing. This requirement can be configured via `compose.Config` above.
 	// In order to generate secure keys, the best thing to do is use crypto/rand:
@@ -70,6 +55,21 @@ var (
 	// 32byte random key as above and push it out to a base64 encoded string.
 	// This can then be injected and decoded as the `var secret []byte` on server start.
 	secret = []byte("some-cool-secret-that-is-32bytes")
+	// Check the api documentation of `compose.Config` for further configuration options.
+	config = &fosite.Config{
+		AccessTokenLifespan: time.Minute * 5,
+		GlobalSecret:        secret,
+		// ...
+	}
+
+	// This is the example storage that sets up:
+	// * an OAuth2 Client with id "my-client" and secret "foobar" capable of all oauth2 and open id connect grant and response types.
+	// * a User for the resource owner password credentials grant type with username "peter" and password "secret".
+	// Refer `mongo.go` for how this is configured and set up.
+	//
+	// NewExampleMongoStore creates an example Mongo datastore that will panic if you don't have an unauthenticated
+	// mongo database that can be found at `localhost:27017`.
+	store = NewExampleMongoStore()
 
 	// privateKey is used to sign JWT tokens. The default strategy uses RS256 (RSA Signature with SHA-256)
 	privateKey, _ = rsa.GenerateKey(rand.Reader, 2048)

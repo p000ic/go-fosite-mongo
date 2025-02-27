@@ -34,15 +34,14 @@ type ClientManager struct {
 
 // Configure sets up the Mongo collection for OAuth 2.0 client resources.
 func (c *ClientManager) Configure(ctx context.Context) (err error) {
-	// Build Index
-	// indices := []mongo.IndexModel{
-	// 	NewUniqueIndex(IdxClientID, "id"),
-	// }
-	// collection := c.DB.Collection(storage.EntityClients)
-	// _, err = collection.Indexes().CreateMany(ctx, indices)
-	// if err != nil {
-	// 	return err
-	// }
+	indices := []mongo.IndexModel{
+		NewUniqueIndex(IdxClientID, "id"),
+	}
+	collection := c.DB.Collection(storage.EntityClients)
+	_, err = collection.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

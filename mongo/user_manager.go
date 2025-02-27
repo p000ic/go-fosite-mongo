@@ -31,15 +31,15 @@ type UserManager struct {
 
 // Configure implements storage.Configure.
 func (u *UserManager) Configure(ctx context.Context) (err error) {
-	// indices := []mongo.IndexModel{
-	// 	NewUniqueIndex(IdxUserID, "id"),
-	// 	NewUniqueIndex(IdxUsername, "username"),
-	// }
-	// collection := u.DB.Collection(storage.EntityUsers)
-	// _, err = collection.Indexes().CreateMany(ctx, indices)
-	// if err != nil {
-	// 	return err
-	// }
+	indices := []mongo.IndexModel{
+		NewUniqueIndex(IdxUserID, "id"),
+		NewUniqueIndex(IdxUsername, "username"),
+	}
+	collection := u.DB.Collection(storage.EntityUsers)
+	_, err = collection.Indexes().CreateMany(ctx, indices)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

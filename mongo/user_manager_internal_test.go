@@ -6,7 +6,7 @@ import (
 	"github.com/p000ic/go-fosite-mongo"
 )
 
-func TestUserMongoManager_ImplementsStorageConfigurer(t *testing.T) {
+func TestUserMongoManagerImplementsStorageConfigurer(t *testing.T) {
 	u := &UserManager{}
 
 	var i interface{} = u
@@ -15,7 +15,7 @@ func TestUserMongoManager_ImplementsStorageConfigurer(t *testing.T) {
 	}
 }
 
-func TestUserMongoManager_ImplementsStorageAuthUserMigrator(t *testing.T) {
+func TestUserMongoManagerImplementsStorageAuthUserMigrator(t *testing.T) {
 	u := &UserManager{}
 
 	var i interface{} = u
@@ -24,7 +24,7 @@ func TestUserMongoManager_ImplementsStorageAuthUserMigrator(t *testing.T) {
 	}
 }
 
-func TestUserMongoManager_ImplementsStorageUserStorer(t *testing.T) {
+func TestUserMongoManagerImplementsStorageUserStorer(t *testing.T) {
 	u := &UserManager{}
 
 	var i interface{} = u
@@ -33,7 +33,7 @@ func TestUserMongoManager_ImplementsStorageUserStorer(t *testing.T) {
 	}
 }
 
-func TestUserMongoManager_ImplementsStorageUserManager(t *testing.T) {
+func TestUserMongoManagerImplementsStorageUserManager(t *testing.T) {
 	u := &UserManager{}
 
 	var i interface{} = u

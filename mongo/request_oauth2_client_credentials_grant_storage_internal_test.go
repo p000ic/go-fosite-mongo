@@ -8,7 +8,7 @@ import (
 	"github.com/ory/fosite/handler/oauth2"
 )
 
-func TestRequestMongoManager_ImplementsFositeClientCredentialsGrantStorageInterface(t *testing.T) {
+func TestRequestMongoManagerImplementsFositeClientCredentialsGrantStorageInterface(t *testing.T) {
 	r := &RequestManager{}
 
 	var i interface{} = r
