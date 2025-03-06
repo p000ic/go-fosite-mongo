@@ -26,11 +26,11 @@ func init() {}
 
 var (
 	defaultHost         = ""
-	defaultPort         = 0
 	defaultDatabaseName = ""
-	defaultUsername     = ""
-	defaultPassword     = ""
-	defaultAuthDB       = ""
+	// defaultPort         = 0
+	// defaultUsername     = ""
+	// defaultPassword     = ""
+	// defaultAuthDB       = ""
 )
 
 // Store provides a MongoDB storage driver compatible with fosite's required
