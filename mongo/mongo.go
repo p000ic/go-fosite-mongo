@@ -124,18 +124,18 @@ type Config struct {
 	TLSConfig        *tls.Config `ignored:"true"`
 }
 
-// DefaultConfig returns a configuration for a locally hosted, unauthenticated mongo
-func DefaultConfig() *Config {
-	cfg := &Config{
-		Hostnames:    []string{defaultHost},
-		Port:         uint16(defaultPort),
-		DatabaseName: defaultDatabaseName,
-		AuthDB:       defaultAuthDB,
-		Username:     defaultUsername,
-		Password:     defaultPassword,
-	}
-	return cfg
-}
+// // DefaultConfig returns a configuration for a locally hosted, unauthenticated mongo
+// func DefaultConfig() *Config {
+// 	cfg := &Config{
+// 		Hostnames:    []string{defaultHost},
+// 		Port:         uint16(defaultPort),
+// 		DatabaseName: defaultDatabaseName,
+// 		AuthDB:       defaultAuthDB,
+// 		Username:     defaultUsername,
+// 		Password:     defaultPassword,
+// 	}
+// 	return cfg
+// }
 
 // ConnectionInfo configures options for establishing a session with a MongoDB cluster.
 func ConnectionInfo(cfg *Config) *options.ClientOptions {
