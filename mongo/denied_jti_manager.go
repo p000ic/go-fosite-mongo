@@ -3,6 +3,7 @@ package mongo
 import (
 	// Standard Library Imports
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -53,7 +54,7 @@ func (d *DeniedJtiManager) getConcrete(ctx context.Context, signature string) (r
 	collection := d.DB.Collection(storage.EntityJtiDenylist)
 	err = collection.FindOne(ctx, query).Decode(&user)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
+		if errors.Is(err, mongo.ErrNoDocuments) {
 			return result, fosite.ErrNotFound
 		}
 		return result, err
