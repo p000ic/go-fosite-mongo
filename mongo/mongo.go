@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 	"time"
 
 	// External Imports
@@ -204,22 +205,19 @@ func Connect(cfg *Config) (*mongo.Database, error) {
 	ctx := context.Background()
 	opts := ConnectionInfo(cfg)
 
-	// If the application makes multiple concurrent requests, it would have to
-	// use a concurrent map like sync.Map
-	startedCommands := make(map[int64]bson.Raw)
+	var startedCommands sync.Map
 	cmdMonitor := &event.CommandMonitor{
 		Started: func(_ context.Context, evt *event.CommandStartedEvent) {
-			startedCommands[evt.RequestID] = evt.Command
+			startedCommands.Store(evt.RequestID, evt.Command)
 		},
 		Succeeded: func(_ context.Context, evt *event.CommandSucceededEvent) {
-			// log.Debugf("cmd: %v success-resp: %v", startedCommands[evt.RequestID], evt.Reply)
-			// Empty "startedCommands" for the request ID to avoid a memory leak.
-			delete(startedCommands, evt.RequestID)
+			startedCommands.Delete(evt.RequestID)
 		},
 		Failed: func(_ context.Context, evt *event.CommandFailedEvent) {
-			log.Printf("cmd: %v failure-resp: %v", startedCommands[evt.RequestID], evt.Failure)
-			// Empty "startedCommands" for the request ID to avoid a memory leak.
-			delete(startedCommands, evt.RequestID)
+			if cmd, ok := startedCommands.Load(evt.RequestID); ok {
+				log.Printf("cmd: %v failure-resp: %v", cmd, evt.Failure)
+				startedCommands.Delete(evt.RequestID)
+			}
 		},
 	}
 	opts.SetMonitor(cmdMonitor)
